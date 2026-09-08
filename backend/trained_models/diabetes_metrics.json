@@ -1,0 +1,145 @@
+{
+  "disease": "diabetes",
+  "default_model": "RandomForest",
+  "best_model": "RandomForest",
+  "accuracy": 0.99,
+  "precision": 0.9881,
+  "recall": 0.9881,
+  "f1_score": 0.99,
+  "auc_roc": 0.9872,
+  "labels": [
+    "Lower Risk",
+    "Higher Risk"
+  ],
+  "confusion_matrix": [
+    [
+      115,
+      1
+    ],
+    [
+      1,
+      83
+    ]
+  ],
+  "feature_names": [
+    "Pregnancies",
+    "Glucose",
+    "BloodPressure",
+    "SkinThickness",
+    "Insulin",
+    "BMI",
+    "DiabetesPedigreeFunction",
+    "Age"
+  ],
+  "feature_importances": [
+    {
+      "feature": "Glucose",
+      "importance": 0.4506
+    },
+    {
+      "feature": "Insulin",
+      "importance": 0.2748
+    },
+    {
+      "feature": "BMI",
+      "importance": 0.1559
+    },
+    {
+      "feature": "BloodPressure",
+      "importance": 0.0461
+    },
+    {
+      "feature": "SkinThickness",
+      "importance": 0.0438
+    },
+    {
+      "feature": "DiabetesPedigreeFunction",
+      "importance": 0.0218
+    },
+    {
+      "feature": "Age",
+      "importance": 0.0046
+    },
+    {
+      "feature": "Pregnancies",
+      "importance": 0.0025
+    }
+  ],
+  "models_compared": [
+    {
+      "name": "RandomForest",
+      "accuracy": 0.99,
+      "precision": 0.9881,
+      "recall": 0.9881,
+      "f1_score": 0.99,
+      "auc_roc": 0.9872,
+      "confusion_matrix": [
+        [
+          115,
+          1
+        ],
+        [
+          1,
+          83
+        ]
+      ]
+    },
+    {
+      "name": "LogisticRegression",
+      "accuracy": 0.99,
+      "precision": 0.9881,
+      "recall": 0.9881,
+      "f1_score": 0.99,
+      "auc_roc": 0.9868,
+      "confusion_matrix": [
+        [
+          115,
+          1
+        ],
+        [
+          1,
+          83
+        ]
+      ]
+    },
+    {
+      "name": "DecisionTree",
+      "accuracy": 0.98,
+      "precision": 0.9878,
+      "recall": 0.9643,
+      "f1_score": 0.98,
+      "auc_roc": 0.9778,
+      "confusion_matrix": [
+        [
+          115,
+          1
+        ],
+        [
+          3,
+          81
+        ]
+      ]
+    },
+    {
+      "name": "KNN",
+      "accuracy": 0.99,
+      "precision": 0.9881,
+      "recall": 0.9881,
+      "f1_score": 0.99,
+      "auc_roc": 0.9896,
+      "confusion_matrix": [
+        [
+          115,
+          1
+        ],
+        [
+          1,
+          83
+        ]
+      ]
+    }
+  ],
+  "trained_at": "2026-09-05T13:23:46.557090+00:00",
+  "train_samples": 800,
+  "test_samples": 200
+}

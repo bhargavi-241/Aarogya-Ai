@@ -1,0 +1,17 @@
+{
+  "disease": "diabetes",
+  "labels": [
+    "Lower Risk",
+    "Higher Risk"
+  ],
+  "matrix": [
+    [
+      115,
+      1
+    ],
+    [
+      1,
+      83
+    ]
+  ]
+}

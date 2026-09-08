@@ -1,0 +1,170 @@
+{
+  "disease": "kidney",
+  "default_model": "RandomForest",
+  "best_model": "RandomForest",
+  "accuracy": 0.995,
+  "precision": 1.0,
+  "recall": 0.9901,
+  "f1_score": 0.995,
+  "auc_roc": 0.9932,
+  "labels": [
+    "Lower Risk",
+    "Higher Risk"
+  ],
+  "confusion_matrix": [
+    [
+      99,
+      0
+    ],
+    [
+      1,
+      100
+    ]
+  ],
+  "feature_names": [
+    "bp",
+    "sg",
+    "al",
+    "su",
+    "bgr",
+    "bu",
+    "sc",
+    "sod",
+    "pot",
+    "hemo",
+    "pcv",
+    "wc",
+    "rc"
+  ],
+  "feature_importances": [
+    {
+      "feature": "sc",
+      "importance": 0.2816
+    },
+    {
+      "feature": "sg",
+      "importance": 0.2228
+    },
+    {
+      "feature": "al",
+      "importance": 0.1292
+    },
+    {
+      "feature": "hemo",
+      "importance": 0.1119
+    },
+    {
+      "feature": "pcv",
+      "importance": 0.0864
+    },
+    {
+      "feature": "bu",
+      "importance": 0.0607
+    },
+    {
+      "feature": "rc",
+      "importance": 0.0482
+    },
+    {
+      "feature": "sod",
+      "importance": 0.0332
+    },
+    {
+      "feature": "bgr",
+      "importance": 0.0201
+    },
+    {
+      "feature": "bp",
+      "importance": 0.0037
+    },
+    {
+      "feature": "pot",
+      "importance": 0.0012
+    },
+    {
+      "feature": "wc",
+      "importance": 0.0009
+    },
+    {
+      "feature": "su",
+      "importance": 0.0001
+    }
+  ],
+  "models_compared": [
+    {
+      "name": "RandomForest",
+      "accuracy": 0.995,
+      "precision": 1.0,
+      "recall": 0.9901,
+      "f1_score": 0.995,
+      "auc_roc": 0.9932,
+      "confusion_matrix": [
+        [
+          99,
+          0
+        ],
+        [
+          1,
+          100
+        ]
+      ]
+    },
+    {
+      "name": "LogisticRegression",
+      "accuracy": 0.995,
+      "precision": 1.0,
+      "recall": 0.9901,
+      "f1_score": 0.995,
+      "auc_roc": 0.9908,
+      "confusion_matrix": [
+        [
+          99,
+          0
+        ],
+        [
+          1,
+          100
+        ]
+      ]
+    },
+    {
+      "name": "DecisionTree",
+      "accuracy": 0.99,
+      "precision": 1.0,
+      "recall": 0.9802,
+      "f1_score": 0.99,
+      "auc_roc": 0.9901,
+      "confusion_matrix": [
+        [
+          99,
+          0
+        ],
+        [
+          2,
+          99
+        ]
+      ]
+    },
+    {
+      "name": "KNN",
+      "accuracy": 0.995,
+      "precision": 1.0,
+      "recall": 0.9901,
+      "f1_score": 0.995,
+      "auc_roc": 0.9949,
+      "confusion_matrix": [
+        [
+          99,
+          0
+        ],
+        [
+          1,
+          100
+        ]
+      ]
+    }
+  ],
+  "trained_at": "2026-09-05T13:23:47.399634+00:00",
+  "train_samples": 800,
+  "test_samples": 200
+}

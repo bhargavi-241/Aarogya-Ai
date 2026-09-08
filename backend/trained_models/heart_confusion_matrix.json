@@ -1,0 +1,17 @@
+{
+  "disease": "heart",
+  "labels": [
+    "Lower Risk",
+    "Higher Risk"
+  ],
+  "matrix": [
+    [
+      104,
+      2
+    ],
+    [
+      0,
+      94
+    ]
+  ]
+}

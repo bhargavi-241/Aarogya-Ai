@@ -1,0 +1,17 @@
+{
+  "disease": "kidney",
+  "labels": [
+    "Lower Risk",
+    "Higher Risk"
+  ],
+  "matrix": [
+    [
+      99,
+      0
+    ],
+    [
+      1,
+      100
+    ]
+  ]
+}
