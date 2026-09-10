@@ -20,6 +20,8 @@ from __future__ import annotations
 import io
 import os
 import re
+import base64
+import json
 import logging
 from pathlib import Path
 from typing import Any, Optional
@@ -331,6 +333,123 @@ def extract_text_from_pdf(pdf_path: str) -> tuple[str, float]:
     return "", 0.0
 
 
+def analyze_document_with_gemini_vision(file_path: str, file_type: str) -> Optional[dict[str, Any]]:
+    """
+    Evaluates document image or PDF directly using Google Gemini Multimodal Vision API.
+    Returns structured JSON with classification, reason, and complete OCR text.
+    """
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key or api_key.startswith("your_"):
+        return None
+
+    try:
+        import httpx
+        ext = file_type.lower().lstrip(".")
+        mime_map = {
+            "png": "image/png",
+            "jpg": "image/jpeg",
+            "jpeg": "image/jpeg",
+            "webp": "image/webp",
+            "bmp": "image/bmp",
+            "pdf": "application/pdf"
+        }
+        mime_type = mime_map.get(ext, "image/jpeg")
+
+        file_p = Path(file_path)
+        if not file_p.exists():
+            return None
+
+        with open(file_p, "rb") as f:
+            data_bytes = f.read()
+
+        if len(data_bytes) == 0:
+            return None
+
+        # If image and larger than 2MB, resize with PIL to speed up network payload
+        if ext in ["png", "jpg", "jpeg", "webp", "bmp"] and _PIL_AVAILABLE and len(data_bytes) > 2 * 1024 * 1024:
+            try:
+                pil_img = PILImage.open(io.BytesIO(data_bytes))
+                pil_img.thumbnail((2048, 2048))
+                buf = io.BytesIO()
+                pil_img.save(buf, format="JPEG", quality=88)
+                data_bytes = buf.getvalue()
+                mime_type = "image/jpeg"
+            except Exception as rz_err:
+                logger.warning("PIL thumbnail compression error: %s", rz_err)
+
+        b64_str = base64.b64encode(data_bytes).decode("utf-8")
+
+        prompt = (
+            "You are an expert Clinical Document Classifier and Medical OCR Transcription Engine.\n"
+            "Examine this document carefully and perform two tasks:\n\n"
+            "TASK 1: Determine whether this is a genuine medical document (such as a medical laboratory report, blood test, "
+            "doctor prescription, pathology report, diagnostic radiology scan, ultrasound report, ECG, discharge summary, or clinic note) "
+            "OR a non-medical document (such as an invoice, payment receipt, tax bill, academic assignment, ID card, certificate, resume, screenshot, or personal photo).\n\n"
+            "TASK 2: Transcribe ALL text verbatim from the document, including headers, doctor details, patient metadata, "
+            "test names, observed values, units, reference intervals, medications, and instructions.\n\n"
+            "Respond ONLY with a JSON object strictly following this schema (no markdown formatting):\n"
+            "{\n"
+            '  "is_medical": true,\n'
+            '  "status": "medical",\n'
+            '  "document_type": "Laboratory Report",\n'
+            '  "document_label": "Laboratory Test Report",\n'
+            '  "confidence": 0.96,\n'
+            '  "reason": "Detailed explanation of clinical findings or why it is/isn\'t a medical report",\n'
+            '  "extracted_text": "Verbatim text extracted from the document",\n'
+            '  "patient_name": "Patient name or null",\n'
+            '  "doctor_name": "Doctor name or null",\n'
+            '  "facility_name": "Lab or hospital name or null"\n'
+            "}"
+        )
+
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "inlineData": {
+                                "mimeType": mime_type,
+                                "data": b64_str
+                            }
+                        },
+                        {
+                            "text": prompt
+                        }
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.1,
+                "responseMimeType": "application/json"
+            }
+        }
+
+        for model in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash"]:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            try:
+                with httpx.Client(timeout=25.0) as client:
+                    resp = client.post(url, json=payload)
+                    if resp.status_code == 200:
+                        res_json = resp.json()
+                        candidates = res_json.get("candidates", [])
+                        if candidates:
+                            raw_txt = candidates[0].get("content", {}).get("parts", [])[0].get("text", "").strip()
+                            raw_txt = re.sub(r"^```(?:json)?\s*", "", raw_txt)
+                            raw_txt = re.sub(r"\s*```$", "", raw_txt)
+                            parsed = json.loads(raw_txt)
+                            logger.info("Gemini Vision classification succeeded via model: %s", model)
+                            return parsed
+                    else:
+                        logger.warning("Gemini Vision model %s returned status %d: %s", model, resp.status_code, resp.text[:120])
+            except Exception as m_err:
+                logger.warning("Gemini Vision model %s attempt error: %s", model, m_err)
+    except Exception as exc:
+        logger.warning("analyze_document_with_gemini_vision general error: %s", exc)
+
+    return None
+
+
+
 def extract_full_text(file_path: str, file_type: str) -> tuple[str, float, bool, bool]:
     """
     Multi-engine extraction pipeline with retry mechanism:
@@ -351,7 +470,7 @@ def extract_full_text(file_path: str, file_type: str) -> tuple[str, float, bool,
     if file_type == "pdf":
         pdf_text, pdf_conf = extract_text_from_pdf(file_path)
         if pdf_text:
-            return pdf_text, pdf_conf, False, True
+            return pdf_text, pdf_conf, False, True, None
 
     # 2. Visual analysis for images
     if file_type in ["jpg", "jpeg", "png", "bmp", "tiff", "webp"]:
@@ -397,11 +516,23 @@ def extract_full_text(file_path: str, file_type: str) -> tuple[str, float, bool,
         except Exception:
             pass
 
+    # 5. Gemini Vision Fallback (Serverless & Cloud environments where local OCR is unavailable)
+    gemini_vision_res = None
+    if not ocr_lines and os.getenv("GEMINI_API_KEY"):
+        gemini_vision_res = analyze_document_with_gemini_vision(file_path, file_type)
+        if gemini_vision_res:
+            g_txt = gemini_vision_res.get("extracted_text", "").strip()
+            if g_txt:
+                ocr_lines.append(g_txt)
+                c_val = float(gemini_vision_res.get("confidence", 0.95)) * 100.0
+                conf_list.append(c_val)
+                is_decoded = True
+
     combined_text = "\n".join(ocr_lines).strip()
     if conf_list:
         avg_conf = round(float(np.mean(conf_list)), 1)
 
-    return combined_text, avg_conf, has_table, is_decoded
+    return combined_text, avg_conf, has_table, is_decoded, gemini_vision_res
 
 
 def normalize_medical_text(text: str) -> str:
@@ -547,7 +678,7 @@ def classify_medical_text(
             total_medical_score = max(total_medical_score, 35)
 
     # If strong non-medical markers exist without clinical tests/prescriptions, suppress medical score
-    if total_negative_signals >= 3 and score_test_names == 0 and score_rx_structure == 0 and score_ranges == 0:
+    if total_negative_signals >= 3 and score_test_names == 0 and score_rx_structure == 0:
         total_medical_score = 0
 
     # Unique positive indicators list
@@ -697,17 +828,64 @@ def classify_medical_document(file_path: str, file_type: str) -> dict[str, Any]:
     except Exception:
         pass
 
-    raw_text, ocr_conf, has_visual_table, is_decoded = extract_full_text(file_path, file_type)
-    
-    result = classify_medical_text(
-        raw_text=raw_text,
-        filename=Path(file_path).name,
-        ocr_conf=ocr_conf,
-        has_visual_table=has_visual_table,
-        file_size_bytes=file_size
-    )
-    result["extracted_text"] = raw_text
-    result["ocr_confidence"] = ocr_conf
+    raw_text, ocr_conf, has_visual_table, is_decoded, gemini_vision_res = extract_full_text(file_path, file_type)
+
+    if gemini_vision_res:
+        is_med = bool(gemini_vision_res.get("is_medical"))
+        conf_val = float(gemini_vision_res.get("confidence", 0.95))
+        doc_type = gemini_vision_res.get("document_type", "medical_report" if is_med else "non_medical")
+        doc_label = gemini_vision_res.get("document_label") or doc_type
+        doc_reason = gemini_vision_res.get("reason", "Analyzed with Clinical Vision Intelligence.")
+
+        if is_med:
+            result = {
+                "is_medical": True,
+                "status": "medical",
+                "document_type": doc_type,
+                "document_label": doc_label,
+                "confidence": conf_val,
+                "medical_score": 96,
+                "reason": doc_reason,
+                "matched_indicators": ["Verified by Clinical Vision Intelligence", f"Detected: {doc_label}"],
+                "negative_indicators": [],
+                "message": f"✓ Medical Document Detected ({doc_label}, {int(conf_val * 100)}% confidence). Ready for automated clinical extraction.",
+                "debug": {
+                    "source": "gemini_vision",
+                    "patient_name": gemini_vision_res.get("patient_name"),
+                    "doctor_name": gemini_vision_res.get("doctor_name"),
+                    "facility_name": gemini_vision_res.get("facility_name")
+                },
+                "extracted_text": raw_text,
+                "ocr_confidence": ocr_conf
+            }
+        else:
+            result = {
+                "is_medical": False,
+                "status": "non_medical",
+                "document_type": doc_type,
+                "document_label": doc_label,
+                "confidence": conf_val,
+                "medical_score": 0,
+                "reason": doc_reason,
+                "matched_indicators": [],
+                "negative_indicators": [doc_reason],
+                "message": f"✕ Not a Medical Document. This file appears to be a {doc_label} ({doc_reason}). Please upload a valid medical report or prescription.",
+                "debug": {
+                    "source": "gemini_vision"
+                },
+                "extracted_text": raw_text,
+                "ocr_confidence": ocr_conf
+            }
+    else:
+        result = classify_medical_text(
+            raw_text=raw_text,
+            filename=Path(file_path).name,
+            ocr_conf=ocr_conf,
+            has_visual_table=has_visual_table,
+            file_size_bytes=file_size
+        )
+        result["extracted_text"] = raw_text
+        result["ocr_confidence"] = ocr_conf
 
     # Developer Logging (Internal Only - Section 1)
     logger.info(

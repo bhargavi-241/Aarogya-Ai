@@ -206,6 +206,21 @@ def extract_text_multi_engine(file_path: str, file_type: str) -> dict[str, Any]:
         except Exception:
             pass
 
+    # 4. Gemini Vision Multi-Modal OCR Fallback
+    if not raw_lines and os.getenv("GEMINI_API_KEY"):
+        try:
+            from app.services.document_validation_service import analyze_document_with_gemini_vision
+            gv_res = analyze_document_with_gemini_vision(file_path, file_type)
+            if gv_res and gv_res.get("extracted_text"):
+                g_txt = gv_res["extracted_text"].strip()
+                raw_lines.append(g_txt)
+                c_score = float(gv_res.get("confidence", 0.95)) * 100.0
+                conf_scores.append(c_score)
+                for w in g_txt.split()[:100]:
+                    word_confidences.append({"word": w, "confidence": round(c_score, 1)})
+        except Exception as gv_err:
+            logger.warning("Gemini Vision OCR extraction notice: %s", gv_err)
+
     full_text = "\n".join(raw_lines).strip()
     avg_conf = round(float(np.mean(conf_scores)), 1) if conf_scores else 85.0
 
