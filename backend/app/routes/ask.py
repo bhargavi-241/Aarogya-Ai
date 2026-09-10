@@ -58,8 +58,8 @@ def handle_ask_question(payload: AskRequest) -> dict[str, Any]:
             "success": True,
             "question": clean_q,
             "answer": result.get("answer", ""),
-            "source": result.get("source", "gemini_ai"),
-            "model": result.get("model"),
+            "source": result.get("source", "clinical_engine"),
+            "model": result.get("model", "Aarogya Clinical AI"),
             "suggestions": result.get("suggestions", []),
             "language": payload.language or "en"
         }

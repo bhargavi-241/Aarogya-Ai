@@ -1,4 +1,14 @@
-# AarogyaAI
+# Aarogya-Ai
+
+<p align="center">
+  <img src="frontend/public/logo-brand.png" alt="Aarogya-Ai Logo" width="420" />
+</p>
+
+<p align="center">
+  <strong>AI-Powered Healthcare Assistant</strong><br>
+  <em>UNDERSTAND &bull; PREVENT &bull; LIVE BETTER</em><br>
+  <strong>Your Health | Our Intelligence</strong>
+</p>
 
 An academic AI + Machine Learning healthcare web application designed to help patients understand medical prescriptions, lab reports, and health parameters in simple language while providing responsible potential disease-risk indications.
 

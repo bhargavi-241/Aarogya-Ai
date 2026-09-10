@@ -30,8 +30,12 @@ export default function Navbar() {
           {/* Brand Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="relative">
-              <div className="bg-gradient-to-tr from-teal-700 via-teal-600 to-emerald-500 group-hover:from-teal-600 group-hover:to-emerald-400 transition-all p-2.5 rounded-2xl text-white shadow-soft-sm ring-1 ring-teal-600/20 group-hover:shadow-teal-glow">
-                <Heart className="h-5 w-5 fill-current" />
+              <div className="w-10 h-10 rounded-2xl bg-white shadow-soft-xs ring-1 ring-slate-200/80 p-1 flex items-center justify-center group-hover:ring-teal-400 group-hover:shadow-teal-glow transition-all">
+                <img
+                  src="/logo-icon.png"
+                  alt="Aarogya-Ai"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                />
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -49,7 +53,7 @@ export default function Navbar() {
                 </span>
               </div>
               <span className="text-[10px] font-semibold text-slate-400 block tracking-wider uppercase">
-                {t('nav_brand_sub', 'Universal Healthcare Intelligence')}
+                {t('nav_brand_sub', 'AI-Powered Healthcare Assistant')}
               </span>
             </div>
           </Link>

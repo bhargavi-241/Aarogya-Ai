@@ -394,7 +394,7 @@ export default function AskHealthPage() {
               </button>
             </form>
             <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2 px-1">
-              <span>Responses are powered by Gemini clinical intelligence and medical knowledge.</span>
+              <span>Responses are powered by AarogyaAI clinical intelligence and medical knowledge.</span>
               <span>Available in English, हिन्दी, मराठी</span>
             </div>
           </div>

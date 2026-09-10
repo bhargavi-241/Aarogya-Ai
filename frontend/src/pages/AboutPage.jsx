@@ -30,6 +30,41 @@ export default function AboutPage() {
         </p>
       </div>
 
+      {/* Official Brand Identity Showcase */}
+      <div className="bg-gradient-to-br from-slate-950 via-teal-950 to-slate-900 border border-teal-800/60 rounded-3xl p-6 sm:p-8 text-white shadow-soft-lg flex flex-col md:flex-row items-center gap-8">
+        <div className="w-48 h-48 sm:w-56 sm:h-56 bg-white rounded-3xl p-4 shadow-2xl flex items-center justify-center shrink-0 border border-teal-100">
+          <img
+            src="/logo.png"
+            alt="Aarogya-Ai Official Logo"
+            className="w-full h-full object-contain"
+          />
+        </div>
+        <div className="space-y-3.5 text-center md:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>OFFICIAL BRAND IDENTITY</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            Aarogya-Ai
+          </h2>
+          <p className="text-teal-200 font-semibold text-sm">
+            AI-Powered Healthcare Assistant &bull; Understand | Prevent | Live Better
+          </p>
+          <p className="text-sm text-slate-300 leading-relaxed max-w-2xl font-normal">
+            Aarogya-Ai was created to empower patients and families with transparent, accessible, and safe clinical intelligence. Our brand stands for empathy, scientific precision, and user autonomy.
+          </p>
+          <div className="pt-2 flex flex-wrap gap-2 justify-center md:justify-start text-xs font-semibold text-teal-200">
+            <span className="bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-xl">📄 Understand Reports</span>
+            <span className="bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-xl">💊 Decode Prescriptions</span>
+            <span className="bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-xl">❤️ Assess Health Risks</span>
+            <span className="bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-xl">💬 Get Instant Guidance</span>
+          </div>
+          <p className="text-[11px] text-teal-400 font-bold tracking-widest uppercase pt-1">
+            Your Health &bull; Our Intelligence
+          </p>
+        </div>
+      </div>
+
       {/* Problem & Solution Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Problem */}

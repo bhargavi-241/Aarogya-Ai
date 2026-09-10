@@ -1213,6 +1213,7 @@ Uric Acid: 7.8 mg/dL (3.5 - 7.2)`,
             rawText={ocrData.raw_text}
             parameters={ocrData.parameters}
             docType={ocrData.document_type}
+            prescription={ocrData.prescription}
             fileId={uploadResult?.file_id}
             currentLanguage={language}
             onLanguageChange={handleLanguageSwitch}

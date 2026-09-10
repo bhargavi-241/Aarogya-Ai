@@ -29,9 +29,11 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
             {/* Left Column: Hero Copy & Actions */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 bg-teal-500/15 border border-teal-400/30 rounded-full px-4 py-1.5 text-xs font-bold text-teal-200 shadow-soft-xs backdrop-blur-md">
-                <Sparkles className="h-3.5 w-3.5 text-teal-300 animate-pulse" />
-                <span>{t('hero_badge', 'AI-Powered Healthcare Intelligence')}</span>
+              <div className="inline-flex items-center gap-2.5 bg-teal-500/15 border border-teal-400/30 rounded-full px-4 py-1.5 text-xs font-bold text-teal-200 shadow-soft-xs backdrop-blur-md">
+                <div className="w-5 h-5 rounded-md bg-white p-0.5 flex items-center justify-center shadow-xs">
+                  <img src="/logo-icon.png" alt="Aarogya-Ai" className="w-full h-full object-contain" />
+                </div>
+                <span>{t('hero_badge', 'Aarogya-Ai • AI-Powered Healthcare Assistant')}</span>
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping ml-1" />
               </div>
 
@@ -116,12 +118,12 @@ export default function HomePage() {
               <div className="bg-slate-900/80 backdrop-blur-xl border border-teal-500/30 rounded-3xl p-6 shadow-2xl relative space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-400/40 flex items-center justify-center text-teal-300">
-                      <HeartPulse className="h-4 w-4" />
+                    <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shadow-xs">
+                      <img src="/logo-icon.png" alt="Aarogya-Ai" className="w-full h-full object-contain" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">Clinical Engine</h4>
-                      <p className="text-[10px] text-teal-300 font-semibold">Real-Time Medical Intelligence</p>
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">Aarogya-Ai Clinical Engine</h4>
+                      <p className="text-[10px] text-teal-300 font-semibold">Your Health • Our Intelligence</p>
                     </div>
                   </div>
                   <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">

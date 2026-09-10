@@ -31,11 +31,7 @@ try:
 except ImportError:
     _PIL_AVAILABLE = False
 
-try:
-    import google.generativeai as genai
-    _GENAI_AVAILABLE = True
-except ImportError:
-    _GENAI_AVAILABLE = False
+_GENAI_AVAILABLE = False
 
 try:
     import httpx
@@ -45,19 +41,7 @@ except ImportError:
 
 
 def get_vlm_api_key() -> tuple[str | None, str]:
-    """Detects available Vision LLM API keys in environment."""
-    gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-    if gemini_key:
-        return gemini_key, "gemini"
-
-    openai_key = os.environ.get("OPENAI_API_KEY")
-    if openai_key:
-        return openai_key, "openai"
-
-    anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
-    if anthropic_key:
-        return anthropic_key, "anthropic"
-
+    """100% local execution mode: returns (None, 'none') to bypass external VLM APIs."""
     return None, "none"
 
 
@@ -86,138 +70,12 @@ def crop_prescription_header(image_path: str, output_path: Optional[str] = None)
 
 
 def extract_demographics_with_gemini(image_path: str, api_key: str) -> dict[str, Any] | None:
-    """Calls Gemini Vision API with structured demographic extraction prompt."""
-    if not _GENAI_AVAILABLE or not _PIL_AVAILABLE:
-        return None
-
-    try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-3.6-flash")
-
-        crop_path = crop_prescription_header(image_path)
-        target_img_path = crop_path if (crop_path and os.path.exists(crop_path)) else image_path
-
-        pil_img = PILImage.open(target_img_path)
-        if max(pil_img.size) > 1000:
-            pil_img.thumbnail((1000, 1000), PILImage.Resampling.LANCZOS)
-
-        prompt = (
-            "Extract these fields from this medical prescription header. It contains handwritten text overlaid on a printed form. "
-            "Read carefully — handwriting may cross printed lines.\n\n"
-            "Return JSON in this exact structure:\n"
-            "{\n"
-            '  "patient_name": "...",\n'
-            '  "age": "...",\n'
-            '  "sex": "...",\n'
-            '  "mobile_no": "...",\n'
-            '  "reg_id": "...",\n'
-            '  "address": "...",\n'
-            '  "occupation": "...",\n'
-            '  "date": "...",\n'
-            '  "doctor_name": "...",\n'
-            '  "clinic_name": "..."\n'
-            "}\n\n"
-            "Use null ONLY if the field is truly blank or impossible to read even with context. "
-            "Do not confuse the doctor's name/credentials (printed, in the letterhead) with the patient's name (handwritten, next to 'NAME:' or 'T. NAME:')."
-        )
-
-        response = model.generate_content([prompt, pil_img])
-        if response and response.text:
-            text = response.text.strip()
-            json_match = re.search(r"\{.*\}", text, re.DOTALL)
-            if json_match:
-                data = json.loads(json_match.group(0))
-                return {
-                    "patient_name": data.get("patient_name"),
-                    "age": str(data.get("age") or ""),
-                    "sex": data.get("sex"),
-                    "mobile_no": data.get("mobile_no"),
-                    "reg_id": data.get("reg_id"),
-                    "address": data.get("address"),
-                    "occupation": data.get("occupation"),
-                    "date": data.get("date"),
-                    "doctor_name": data.get("doctor_name"),
-                    "clinic_name": data.get("clinic_name"),
-                    "source": "vlm_gemini",
-                    "confidence": "high"
-                }
-    except Exception as exc:
-        logger.warning("Gemini vision extraction failed: %s", exc)
-
+    """Disabled: 100% local execution mode uses heuristic handwriting extraction engine."""
     return None
 
 
 def extract_demographics_with_openai(image_path: str, api_key: str) -> dict[str, Any] | None:
-    """Calls OpenAI GPT-4o-mini Vision API with structured demographic extraction prompt."""
-    if not _HTTPX_AVAILABLE or not _PIL_AVAILABLE:
-        return None
-
-    import base64
-    try:
-        crop_path = crop_prescription_header(image_path)
-        target_img_path = crop_path if (crop_path and os.path.exists(crop_path)) else image_path
-
-        with open(target_img_path, "rb") as image_file:
-            b64_img = base64.b64encode(image_file.read()).decode("utf-8")
-
-        prompt = (
-            "Extract these fields from this medical prescription header. It contains handwritten text overlaid on a printed form. "
-            "Read carefully — handwriting may cross printed lines.\n\n"
-            "Return JSON in this exact structure:\n"
-            "{\n"
-            '  "patient_name": "...",\n'
-            '  "age": "...",\n'
-            '  "sex": "...",\n'
-            '  "mobile_no": "...",\n'
-            '  "reg_id": "...",\n'
-            '  "address": "...",\n'
-            '  "occupation": "...",\n'
-            '  "date": "...",\n'
-            '  "doctor_name": "...",\n'
-            '  "clinic_name": "..."\n'
-            "}\n\n"
-            "Use null ONLY if the field is truly blank or impossible to read even with context. "
-            "Do not confuse the doctor's name/credentials (printed, in the letterhead) with the patient's name (handwritten, next to 'NAME:' or 'T. NAME:')."
-        )
-
-        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-        payload = {
-            "model": "gpt-4o-mini",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}
-                    ]
-                }
-            ],
-            "response_format": {"type": "json_object"},
-            "temperature": 0.1
-        }
-
-        resp = httpx.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=20.0)
-        if resp.status_code == 200:
-            res_json = resp.json()
-            content = res_json["choices"][0]["message"]["content"]
-            data = json.loads(content)
-            return {
-                "patient_name": data.get("patient_name"),
-                "age": str(data.get("age") or ""),
-                "sex": data.get("sex"),
-                "mobile_no": data.get("mobile_no"),
-                "reg_id": data.get("reg_id"),
-                "address": data.get("address"),
-                "occupation": data.get("occupation"),
-                "date": data.get("date"),
-                "doctor_name": data.get("doctor_name"),
-                "clinic_name": data.get("clinic_name"),
-                "source": "vlm_openai",
-                "confidence": "high"
-            }
-    except Exception as exc:
-        logger.warning("OpenAI vision extraction failed: %s", exc)
-
+    """Disabled: 100% local execution mode uses heuristic handwriting extraction engine."""
     return None
 
 

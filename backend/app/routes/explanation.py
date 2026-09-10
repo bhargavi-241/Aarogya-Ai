@@ -31,7 +31,6 @@ async def explain_medical_terms(payload: ExplainRequest, db: Session = Depends(g
     if not payload.terms:
         raise HTTPException(status_code=422, detail="Please provide at least one medical term.")
 
-    api_key = os.getenv("GEMINI_API_KEY", "").strip() if payload.use_llm else ""
     explanations = []
 
     for term in payload.terms:
@@ -39,11 +38,7 @@ async def explain_medical_terms(payload: ExplainRequest, db: Session = Depends(g
         if not clean_term:
             continue
             
-        if api_key:
-            exp = await get_llm_explanation(clean_term, payload.text_context or "", api_key, language=payload.language or "en")
-        else:
-            exp = get_explanation(clean_term)
-            
+        exp = await get_llm_explanation(clean_term, payload.text_context or "", language=payload.language or "en")
         explanations.append(exp)
 
         # Store to DB if report_id provided

@@ -12,9 +12,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand & Purpose */}
           <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center gap-2 text-white font-black text-xl tracking-tight">
-              <div className="bg-gradient-to-tr from-teal-600 to-teal-400 p-2 rounded-xl shadow-sm">
-                <Heart className="h-5 w-5 text-slate-950" />
+            <div className="flex items-center gap-3 text-white font-black text-xl tracking-tight">
+              <div className="w-10 h-10 rounded-xl bg-white p-1 shadow-sm flex items-center justify-center">
+                <img src="/logo-icon.png" alt="Aarogya-Ai" className="w-full h-full object-contain" />
               </div>
               <span>{t('nav_brand_title', 'Aarogya')} <span className="text-teal-400">{t('nav_brand_highlight', 'AI')}</span></span>
             </div>

@@ -125,10 +125,21 @@ export default function SymptomCheckerSection() {
 
   const handleCopyNotes = () => {
     if (!analysisResult) return;
+    const dg = analysisResult.direct_guidance;
+    let guidanceText = '';
+    if (dg) {
+      guidanceText = `\nDirect Clinical Guidance:
+${dg.summary || ''}
+Foods to Eat: ${(dg.foods_to_eat || []).join('; ')}
+Foods to Avoid: ${(dg.foods_to_avoid || []).join('; ')}
+Hydration: ${(dg.hydration_care || []).join('; ')}
+Home Care: ${(dg.immediate_care || []).join('; ')}\n`;
+    }
     const notes = `Clinical AI Symptom Assessment Summary:
-Reported Symptoms: "${analysisResult.inputText}"
+Reported Symptoms / Inquiry: "${analysisResult.inputText}"
 Primary System: ${analysisResult.system || 'General'}
 Recommended Specialist: ${analysisResult.specialist || 'General Physician'}
+${guidanceText}
 Reason Behind It: ${analysisResult.reason_behind_it || 'Refer to clinical evaluation.'}
 Recommended Lab Tests: ${(analysisResult.recommended_tests || []).join(', ')}
 
@@ -258,7 +269,7 @@ Recommended Lab Tests: ${(analysisResult.recommended_tests || []).join(', ')}
                   <span className="text-[10px] uppercase font-black text-slate-950 bg-gradient-to-r from-teal-400 to-emerald-400 px-3 py-0.5 rounded-full flex items-center gap-1">
                     <Sparkles className="h-3 w-3" />
                     <span>
-                      {analysisResult.is_ai_generated ? 'Gemini Clinical AI Model' : 'Clinical Diagnostic Engine'}
+                      'Aarogya Clinical AI Engine'
                     </span>
                   </span>
                   <span className="text-xs text-teal-300 font-bold">
@@ -290,7 +301,112 @@ Recommended Lab Tests: ${(analysisResult.recommended_tests || []).join(', ')}
               </button>
             </div>
 
-            {/* SECTION 1: What Might Be Happening (Predicted Conditions) */}
+                        {/* DIRECT CLINICAL GUIDANCE & DIETARY / IMMEDIATE CARE CARD */}
+            {analysisResult.direct_guidance && (
+              <div className="bg-gradient-to-br from-teal-950/90 via-slate-900 to-emerald-950/80 border-2 border-teal-400/60 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xl">
+                <div className="flex items-center justify-between flex-wrap gap-2 border-b border-teal-800/60 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="p-2 bg-teal-500/20 text-teal-300 rounded-xl border border-teal-400/40">
+                      <Sparkles className="h-5 w-5 text-teal-300" />
+                    </span>
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-teal-300 block">
+                        Direct Clinical Answer & Self-Care Guidance
+                      </span>
+                      <h4 className="text-base sm:text-lg font-black text-white">
+                        {analysisResult.direct_guidance.title || '💡 Direct Clinical Guidance & Care Advice'}
+                      </h4>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                    Active Care Protocol
+                  </span>
+                </div>
+
+                {analysisResult.direct_guidance.summary && (
+                  <div className="bg-slate-900/80 border border-teal-700/40 rounded-xl p-4 text-xs sm:text-sm text-teal-100/90 leading-relaxed font-medium">
+                    {analysisResult.direct_guidance.summary}
+                  </div>
+                )}
+
+                {/* 4-Column Grid: Foods to Eat, Foods to Avoid, Hydration Care, Self-Care Precaution */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                  {/* 1. Foods to Eat */}
+                  {analysisResult.direct_guidance.foods_to_eat && analysisResult.direct_guidance.foods_to_eat.length > 0 && (
+                    <div className="bg-slate-900/90 border border-emerald-700/50 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-2 text-emerald-300 text-xs font-black uppercase tracking-wider">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                        <span>🥣 क्या खाएं / Recommended Foods to Eat</span>
+                      </div>
+                      <ul className="space-y-1.5 text-xs text-slate-200 leading-relaxed">
+                        {analysisResult.direct_guidance.foods_to_eat.map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-emerald-400 font-bold">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* 2. Foods to Avoid */}
+                  {analysisResult.direct_guidance.foods_to_avoid && analysisResult.direct_guidance.foods_to_avoid.length > 0 && (
+                    <div className="bg-slate-900/90 border border-rose-700/50 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-2 text-rose-300 text-xs font-black uppercase tracking-wider">
+                        <AlertTriangle className="h-4 w-4 text-rose-400 flex-shrink-0" />
+                        <span>🚫 क्या न खाएं / Foods & Habits to Avoid</span>
+                      </div>
+                      <ul className="space-y-1.5 text-xs text-slate-200 leading-relaxed">
+                        {analysisResult.direct_guidance.foods_to_avoid.map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-rose-400 font-bold">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* 3. Hydration Care */}
+                  {analysisResult.direct_guidance.hydration_care && analysisResult.direct_guidance.hydration_care.length > 0 && (
+                    <div className="bg-slate-900/90 border border-cyan-700/50 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-2 text-cyan-300 text-xs font-black uppercase tracking-wider">
+                        <Droplets className="h-4 w-4 text-cyan-400 flex-shrink-0" />
+                        <span>💧 हाइड्रेशन व तरल पदार्थ / Hydration & Fluids</span>
+                      </div>
+                      <ul className="space-y-1.5 text-xs text-slate-200 leading-relaxed">
+                        {analysisResult.direct_guidance.hydration_care.map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-cyan-400 font-bold">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* 4. Immediate Home Care & Precaution */}
+                  {analysisResult.direct_guidance.immediate_care && analysisResult.direct_guidance.immediate_care.length > 0 && (
+                    <div className="bg-slate-900/90 border border-amber-700/50 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-2 text-amber-300 text-xs font-black uppercase tracking-wider">
+                        <ShieldCheck className="h-4 w-4 text-amber-400 flex-shrink-0" />
+                        <span>🛌 घरेलू देखभाल व सावधानियां / Home Care & Rest</span>
+                      </div>
+                      <ul className="space-y-1.5 text-xs text-slate-200 leading-relaxed">
+                        {analysisResult.direct_guidance.immediate_care.map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-amber-400 font-bold">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+{/* SECTION 1: What Might Be Happening (Predicted Conditions) */}
             {analysisResult.predicted_conditions && analysisResult.predicted_conditions.length > 0 && (
               <div className="bg-slate-800/80 border border-teal-700/50 rounded-2xl p-5 space-y-3">
                 <div className="flex items-center gap-2 text-teal-300 text-xs font-black uppercase tracking-wider">

@@ -18,20 +18,9 @@ from dotenv import load_dotenv
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-# Try importing google.generativeai
-try:
-    import google.generativeai as genai
-    _GENAI_AVAILABLE = True
-except ImportError:
-    _GENAI_AVAILABLE = False
-    logger.warning("google-generativeai package not available for patient voice assistant.")
-
-VOICE_CANDIDATE_MODELS = [
-    "gemini-3.6-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.7-flash",
-    "gemini-flash-latest",
-]
+# External cloud API disabled in favor of 100% local backend execution
+_GENAI_AVAILABLE = False
+VOICE_CANDIDATE_MODELS = ["aarogya-clinical-voice-engine"]
 
 # Clinical symptom dictionary for fallback & extraction across EN, HI, MR
 SYMPTOM_LEXICON: dict[str, dict[str, Any]] = {
@@ -282,76 +271,8 @@ def generate_patient_voice_guide(
         fallback["spoken_response"] = "Please describe how you are feeling or what problem you are having. Please consult a doctor for proper checkup."
         return fallback
 
-    # 1. First prepare baseline clinical fallback
+    # 100% Local Clinical Voice Guidance Execution
     fallback_data = _build_spoken_voice_fallback(clean_text, lang)
-
-    # 2. Try Gemini Generative AI if key is configured
-    if _GENAI_AVAILABLE:
-        api_key = os.getenv("GEMINI_API_KEY", "").strip()
-        if api_key and api_key != "your_key_here":
-            try:
-                genai.configure(api_key=api_key)
-
-                # Craft language instruction
-                lang_rule = ""
-                closing_rule = 'End your response with this exact sentence: "Please consult a doctor for proper checkup."'
-                if lang in ["hi", "hindi"]:
-                    lang_rule = "Provide the entire response in very simple, conversational spoken HINDI (हिन्दी) using Devanagari script, as if speaking warmly to someone who cannot read."
-                    closing_rule = 'End your response with: "कृपया उचित जांच के लिए डॉक्टर से मिलें। (Please consult a doctor for proper checkup.)"'
-                elif lang in ["mr", "marathi"]:
-                    lang_rule = "Provide the entire response in very simple, conversational spoken MARATHI (मराठी) using Devanagari script, as if speaking warmly to someone who cannot read."
-                    closing_rule = 'End your response with: "कृपया योग्य तपासणीसाठी डॉक्टरांचा सल्ला घ्या. (Please consult a doctor for proper checkup.)"'
-
-                prompt = f"""A patient (who may not be literate) has spoken their health problem in their own words. Their speech has been converted to this text: 
-"{clean_text}"
-
-1. Identify the possible symptoms mentioned (e.g., fever, cough, cold, pain, etc.).
-2. Give a simple, general explanation of what these symptoms commonly indicate — in easy, everyday language.
-3. Suggest basic, safe precautions (rest, hydration, hygiene) — no medication names or dosages.
-4. Clearly state when they should see a doctor urgently (e.g., high fever, breathing difficulty, symptoms lasting more than X days).
-5. Do NOT diagnose a specific disease. Do NOT prescribe any medicine.
-
-Keep the response short, in very simple spoken-style language (as if explaining to someone with no medical or reading background), suitable to be read aloud via text-to-speech. 
-{lang_rule}
-{closing_rule}"""
-
-                for model_name in VOICE_CANDIDATE_MODELS:
-                    try:
-                        model = genai.GenerativeModel(model_name=model_name)
-                        response = model.generate_content(
-                            prompt,
-                            generation_config=genai.types.GenerationConfig(
-                                temperature=0.2,
-                                max_output_tokens=800
-                            )
-                        )
-                        if response and response.text and response.text.strip():
-                            raw_ai_text = response.text.strip()
-                            
-                            # Ensure the mandatory closing is present
-                            closing_en = "Please consult a doctor for proper checkup."
-                            if "consult a doctor for proper checkup" not in raw_ai_text.lower() and "कृपया उचित जांच के लिए डॉक्टर से मिलें" not in raw_ai_text:
-                                raw_ai_text = raw_ai_text.rstrip(". \n") + f"\n\n{fallback_data['doctor_closing']}"
-
-                            return {
-                                "success": True,
-                                "patient_spoken_text": clean_text,
-                                "spoken_response": raw_ai_text,
-                                "symptoms_identified": fallback_data["symptoms_identified"],
-                                "general_explanation": fallback_data["general_explanation"],
-                                "precautions": fallback_data["precautions"],
-                                "urgent_warning": fallback_data["urgent_warning"],
-                                "doctor_closing": fallback_data["doctor_closing"],
-                                "is_emergency_flag": fallback_data["is_emergency_flag"],
-                                "source": "gemini_ai",
-                                "model": model_name,
-                                "language": lang
-                            }
-                    except Exception as model_err:
-                        logger.warning("Patient voice model %s failed: %s", model_name, model_err)
-                        continue
-            except Exception as genai_err:
-                logger.warning("Gemini voice assistant execution failed: %s", genai_err)
-
-    # 3. If Gemini is unavailable or rate-limited, return clinical fallback
+    fallback_data["source"] = "clinical_engine"
+    fallback_data["model"] = "Aarogya Clinical Voice Engine"
     return fallback_data

@@ -562,45 +562,97 @@ def explain_extracted_entities(extracted_info: dict[str, Any]) -> list[dict[str,
 
 
 async def get_llm_explanation(term: str, context: str = "", api_key: str = "", language: str = "en") -> dict[str, Any]:
-    """Optional LLM enrichment if GEMINI_API_KEY is configured with multi-lingual support."""
-    if not api_key:
-        return get_explanation(term)
-
+    """
+    Local Clinical Explanation Engine running 100% locally on the backend codebase.
+    Provides structured, compassionate explanations in English, Hindi, and Marathi without cloud APIs.
+    """
     lang = (language or "en").lower().strip()
-    lang_rule = "in patient-friendly, compassionate language"
+    if lang not in ["hi", "hindi", "mr", "marathi"]:
+        lang = "en"
+
+    # 1. Check local clinical dictionary
+    exp = get_explanation(term)
+    if exp and exp.get("simple_explanation"):
+        if lang in ["hi", "hindi"]:
+            exp_copy = dict(exp)
+            exp_copy["disclaimer"] = "यह व्याख्या केवल शैक्षिक उद्देश्यों के लिए है और पेशेवर चिकित्सीय सलाह का विकल्प नहीं है। हमेशा अपने डॉक्टर से परामर्श करें।"
+            exp_copy["source"] = "clinical_engine"
+            return exp_copy
+        elif lang in ["mr", "marathi"]:
+            exp_copy = dict(exp)
+            exp_copy["disclaimer"] = "हे स्पष्टीकरण केवळ शैक्षणिक उद्देशांसाठी आहे आणि व्यावसायिक वैद्यकीय सल्ल्याचा पर्याय नाही. नेहमी आपल्या डॉक्टरांचा सल्ला घ्या."
+            exp_copy["source"] = "clinical_engine"
+            return exp_copy
+        else:
+            exp_copy = dict(exp)
+            exp_copy["source"] = "clinical_engine"
+            return exp_copy
+
+    # 2. Dynamic Clinical Synthesis for unlisted medical terms / tests / medications
+    term_lower = term.lower().strip()
+    clean_title = term.strip().title()
+
+    # Medical terminology heuristics
+    if any(term_lower.endswith(s) for s in ["statin"]):
+        meaning_en = f"{clean_title} is a lipid-lowering medication used to manage blood cholesterol and support cardiovascular health."
+        why_en = "It helps reduce arterial plaque formation, decreasing risks of adverse cardiac events."
+        points_en = ["Take regularly as prescribed by your doctor", "Report unexplained muscle tenderness to your clinician"]
+    elif any(term_lower.endswith(s) for s in ["pril", "sartan", "olol", "pine"]):
+        meaning_en = f"{clean_title} is a cardiovascular medication primarily prescribed to regulate blood pressure and reduce cardiac workload."
+        why_en = "It relaxes vascular resistance, promoting smoother blood circulation and protecting target organs."
+        points_en = ["Monitor blood pressure periodically", "Do not discontinue abruptly without clinical consultation"]
+    elif any(term_lower.endswith(s) for s in ["cillin", "mycin", "floxacin", "cycline", "penem"]) or term_lower.startswith("cef"):
+        meaning_en = f"{clean_title} is an antimicrobial medication indicated for treating susceptible bacterial infections."
+        why_en = "It eradicates pathogenic bacteria or halts their replication to allow immune recovery."
+        points_en = ["Complete the full directed course even if symptoms improve", "Take with meals or water as instructed by your pharmacist"]
+    elif any(term_lower.endswith(s) for s in ["formin", "gliptin", "gliflozin", "glitazone"]) or "insulin" in term_lower:
+        meaning_en = f"{clean_title} is a metabolic medication prescribed to help maintain optimal blood glucose boundaries in diabetes."
+        why_en = "It improves cellular insulin response or aids renal excretion of excess circulating glucose."
+        points_en = ["Take consistently alongside balanced nutrition", "Be mindful of early signs of low blood sugar (hypoglycemia)"]
+    elif any(term_lower.endswith(s) for s in ["prazole", "tidine"]):
+        meaning_en = f"{clean_title} is an acid-reducing medication used to protect gastric mucosal lining from acid irritation."
+        why_en = "It decreases stomach acid production, relieving heartburn and facilitating ulcer healing."
+        points_en = ["Often taken in the morning before breakfast", "Consult your physician for long-term symptom management"]
+    elif any(k in term_lower for k in ["count", "level", "test", "profile", "panel", "ratio", "titer", "scan"]):
+        meaning_en = f"{clean_title} is a diagnostic laboratory or imaging evaluation used to assess specific physiological parameters."
+        why_en = "It provides objective numeric markers that help doctors identify underlying conditions and track wellness."
+        points_en = ["Always interpret values in reference to the reported lab range", "Discuss individual implications with your doctor"]
+    elif any(term_lower.endswith(s) for s in ["itis"]):
+        meaning_en = f"{clean_title} refers to a localized inflammatory response within body tissues."
+        why_en = "Inflammation is an immune response that causes swelling, redness, and discomfort that requires medical evaluation."
+        points_en = ["Follow prescribed anti-inflammatory or medical therapy", "Seek prompt care if symptoms worsen"]
+    else:
+        meaning_en = f"{clean_title} is a clinical term, medication, or test parameter documented in your medical record."
+        why_en = "It provides diagnostic context regarding your health evaluation, symptoms, or recommended treatment plan."
+        points_en = ["Confirm exact details and instructions with your doctor or pharmacist", "Follow all prescribed clinical directions"]
+
     if lang in ["hi", "hindi"]:
-        lang_rule = "in clear, patient-friendly HINDI (हिन्दी) Devanagari script"
+        return {
+            "term": clean_title,
+            "simple_explanation": f"{clean_title} एक नैदानिक शब्द, परीक्षण या दवा है। यह आपके स्वास्थ्य मूल्यांकन से संबंधित महत्वपूर्ण जानकारी प्रदान करता है।",
+            "why_it_matters": "यह शरीर की कार्यप्रणाली और उपचार योजना को समझने में मदद करता है।",
+            "reference_info": "अपने व्यक्तिगत परिणामों पर डॉक्टर से विस्तार से चर्चा करें।",
+            "important_points": ["डॉक्टर या फार्मासिस्ट से विवरण की पुष्टि करें", "निर्धारित सलाह का पालन करें"],
+            "disclaimer": "यह व्याख्या केवल शैक्षिक उद्देश्यों के लिए है और चिकित्सीय निदान नहीं है।",
+            "source": "clinical_engine"
+        }
     elif lang in ["mr", "marathi"]:
-        lang_rule = "in clear, patient-friendly MARATHI (मराठी) Devanagari script"
-
-    prompt = (
-        f"Explain the medical term or medicine '{term}' {lang_rule} "
-        f"for a non-technical reader. Context: {context[:300]}. "
-        f"Provide: 1) Simple meaning, 2) Why it matters, 3) Important safety points. Keep under 100 words. "
-        f"Do NOT diagnose or give prescription dosage instructions."
-    )
-
-    try:
-        async with httpx.AsyncClient(timeout=8.0) as client:
-            resp = await client.post(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
-                params={"key": api_key},
-                json={"contents": [{"parts": [{"text": prompt}]}]}
-            )
-            if resp.status_code == 200:
-                data = resp.json()
-                text_content = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                if text_content:
-                    return {
-                        "term": term.title(),
-                        "simple_explanation": text_content.strip(),
-                        "why_it_matters": "AI-enriched contextual explanation." if lang not in ["hi", "mr"] else ("AI-संचालित व्याख्या।" if lang == "hi" else "AI-आधारित स्पष्टीकरण."),
-                        "reference_info": "Discuss your individual results directly with your healthcare provider.",
-                        "important_points": ["Generated with AI assistance", "Requires medical confirmation"],
-                        "disclaimer": DISCLAIMER_TEXT,
-                        "source": "ai_enhanced"
-                    }
-    except Exception as exc:
-        logger.warning("LLM fallback to local dictionary: %s", exc)
-
-    return get_explanation(term)
+        return {
+            "term": clean_title,
+            "simple_explanation": f"{clean_title} ही एक वैद्यकीय संज्ञा, चाचणी किंवा औषध आहे जी तुमच्या आरोग्य तपासणीशी संबंधित आहे.",
+            "why_it_matters": "हे शरीराचे आरोग्य आणि उपचारांचे नियोजन समजून घेण्यास मदत करते.",
+            "reference_info": "आपल्या वैयक्तिक निष्कर्षांवर डॉक्टरांशी चर्चा करा.",
+            "important_points": ["डॉक्टरांकडून किंवा औषधविक्रेत्याकडून खात्री करा", "वेळेवर काळजी घ्या"],
+            "disclaimer": "हे स्पष्टीकरण केवळ माहितीसाठी आहे आणि वैद्यकीय निदान नाही.",
+            "source": "clinical_engine"
+        }
+    else:
+        return {
+            "term": clean_title,
+            "simple_explanation": meaning_en,
+            "why_it_matters": why_en,
+            "reference_info": "Discuss individual results and implications directly with your healthcare provider.",
+            "important_points": points_en,
+            "disclaimer": DISCLAIMER_TEXT,
+            "source": "clinical_engine"
+        }

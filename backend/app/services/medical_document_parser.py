@@ -1252,57 +1252,22 @@ def generate_prescription_conclusion_llm(
     diagnosis: str,
     prescription: str
 ) -> str | None:
-    """Calls Gemini or OpenAI to generate a short, clean, patient-facing conclusion."""
-    from app.services.vision_demographics_service import get_vlm_api_key
-    api_key, provider = get_vlm_api_key()
+    """100% Local clinical synthesis for prescription conclusion."""
+    if not clinical_notes and not diagnosis and not prescription:
+        return "The doctor's notes on diagnosis were not clearly legible in this scan — please confirm the details with your doctor or pharmacist."
 
-    if not api_key:
-        return None
+    parts = []
+    if diagnosis and diagnosis != "Not stated":
+        parts.append(f"The clinical impression documents {diagnosis}.")
+    elif clinical_notes and clinical_notes != "Not clearly legible":
+        parts.append(f"The patient presented with {clinical_notes}.")
 
-    prompt = (
-        "You are writing a short 'Conclusion' for a patient-facing medical report summary.\n\n"
-        "Structured data extracted from the document:\n"
-        f"- Chief complaints / symptoms: {clinical_notes or 'Not clearly legible'}\n"
-        f"- Vitals: {vitals or 'Documented'}\n"
-        f"- Diagnosis (if stated): {diagnosis or 'Not stated'}\n"
-        f"- Medicines prescribed: {prescription or 'Documented'}\n\n"
-        "Write a 1-2 sentence conclusion describing what the doctor found and what was prescribed, "
-        "in plain simple language a non-medical person can understand.\n\n"
-        "Rules:\n"
-        "- Use ONLY the structured data given above. Do not use any other text from the document "
-        "(ignore doctor credentials, clinic name, addresses, phone numbers).\n"
-        "- If clinical_notes/diagnosis are empty or marked illegible, say: 'The doctor's notes on diagnosis were not clearly legible in this scan — please confirm the details with your doctor or pharmacist.'\n"
-        "- Never output clinic branding, doctor designations (e.g. 'Consultant', 'M.B.B.S', 'Ex Consultant'), addresses, or phone numbers as part of the conclusion.\n"
-        "- Output plain text only, no labels or headers."
-    )
+    if prescription and prescription != "Documented":
+        parts.append(f"Medication therapy was prescribed ({prescription}). Take all medications as directed by your physician.")
+    else:
+        parts.append("Prescribed medication therapy should be confirmed directly with your pharmacist.")
 
-    try:
-        if provider == "gemini":
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-3.6-flash")
-            resp = model.generate_content(prompt)
-            if resp and resp.text:
-                cand = resp.text.strip()
-                if not is_invalid_conclusion(cand):
-                    return cand
-        elif provider == "openai":
-            import httpx
-            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-            payload = {
-                "model": "gpt-4o-mini",
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.1
-            }
-            resp = httpx.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=10.0)
-            if resp.status_code == 200:
-                cand = resp.json()["choices"][0]["message"]["content"].strip()
-                if not is_invalid_conclusion(cand):
-                    return cand
-    except Exception as exc:
-        logger.warning("LLM conclusion generation error: %s", exc)
-
-    return None
+    return " ".join(parts)
 
 
 def extract_report_conclusion(
@@ -1411,43 +1376,21 @@ def extract_report_conclusion(
 
 
 def extract_prescription_details(raw_text: str, ocr_conf: float = 85.0) -> dict[str, Any]:
-    """Extracts prescription medicine rows and dosage information."""
-    common_meds = [
-        "Metformin", "Aspirin", "Atorvastatin", "Lisinopril", "Amlodipine",
-        "Omeprazole", "Paracetamol", "Amoxicillin", "Ciprofloxacin", "Losartan",
-        "Metoprolol", "Atenolol", "Ramipril", "Glibenclamide", "Insulin",
-        "Pantoprazole", "Telmisartan", "Rosuvastatin", "Azithromycin", "Cetirizine",
-        "Montelukast", "Dolo", "Augmentin", "Clavam", "Ofloxacin", "Levocetirizine"
-    ]
+    """Extracts prescription medicine rows and dosage information with clinical purpose."""
+    from app.services.gemini_summary_service import extract_prescription_medicines_summary
+    detailed = extract_prescription_medicines_summary(raw_text, "en")
     medicines = []
-    lines = raw_text.splitlines()
-
-    for line in lines:
-        line_clean = line.strip()
-        # Skip branding and credentials
-        if is_branding_or_credential_line(line_clean):
-            continue
-
-        for med in common_meds:
-            if re.search(r"\b" + re.escape(med) + r"\b", line_clean, re.IGNORECASE):
-                dose_m = re.search(r"(\b\d+(?:\.\d+)?\s*(?:mg|ml|mcg|g|iu)\b)", line_clean, re.IGNORECASE)
-                dosage = dose_m.group(1) if dose_m else "Standard dosage"
-
-                freq_m = re.search(r"(\b\d-\d-\d\b|\bonce\s+daily\b|\btwice\s+daily\b|\bod\b|\bbd\b|\btds\b|\bsos\b|\bhs\b|\bat\s+bedtime\b)", line_clean, re.IGNORECASE)
-                freq = freq_m.group(1).upper() if freq_m else "As directed"
-
-                instr_m = re.search(r"\b(after\s+food|before\s+food|with\s+meals|at\s+bedtime|before\s+breakfast)\b", line_clean, re.IGNORECASE)
-                instructions = instr_m.group(1) if instr_m else "Take as directed by physician"
-
-                medicines.append({
-                    "medicine_name": med,
-                    "dosage": dosage,
-                    "frequency": freq,
-                    "instructions": instructions,
-                    "confidence": round(ocr_conf, 1)
-                })
-                break
-
+    for m in detailed:
+        medicines.append({
+            "medicine_name": m.get("name", "Medicine"),
+            "dosage": m.get("dosage", "Standard dose"),
+            "frequency": m.get("frequency", "As directed"),
+            "instructions": f"{m.get('timing', 'Take as directed')}. {m.get('purpose', '')}".strip(),
+            "category": m.get("category", "Medication"),
+            "purpose": m.get("purpose", ""),
+            "precautions": m.get("precautions", ""),
+            "confidence": round(ocr_conf, 1)
+        })
     return {"medicines": medicines, "total_medicines": len(medicines)}
 
 
@@ -1958,7 +1901,7 @@ def analyze_medical_document_content(raw_text: str, filename: str = "", ocr_conf
         "simple_explanation": simple_explanation,
         "summary": simple_explanation,
         "is_gemini_summary": is_gemini_summary,
-        "ai_provider": "Gemini 3.6 Flash" if is_gemini_summary else "Clinical Rule Engine",
+        "ai_provider": "Aarogya Clinical AI Engine" if is_gemini_summary else "Clinical Rule Engine",
         "overall_status": overall_status,
         "key_findings": key_findings[:12],
         "measurements": measurements,

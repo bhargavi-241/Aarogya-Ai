@@ -203,6 +203,7 @@ function parseExplanationSections(rawText) {
       abnormalParams: [],
       conclusion: { status: 'unspecified', lines: [] },
       nextSteps: [],
+      medicines: [],
       doctorQuestions: [],
       rawLines: []
     };
@@ -224,6 +225,7 @@ function parseExplanationSections(rawText) {
   const normalParams = [];
   const abnormalParams = [];
   const nextSteps = [];
+  const medicines = [];
   const doctorQuestions = [];
   const conclusionLines = [];
   let conclusionStatus = 'normal';
@@ -313,7 +315,24 @@ function parseExplanationSections(rawText) {
       }
     }
 
-    // Section 5 Header detection (Questions to Ask Your Doctor / डॉक्टर से पूछने योग्य प्रश्न)
+    // Section Header detection (Medication & Dosage / दवाओं से संबंधित / औषधांविषयी)
+    if (
+      lower.includes('medication') ||
+      lower.includes('medicine') ||
+      lower.includes('दवाओं से संबंधित') ||
+      lower.includes('दवाएं') ||
+      lower.includes('औषधांविषयी') ||
+      lower.includes('औषधे') ||
+      lower.includes('prescription info') ||
+      lower.includes('dosage info')
+    ) {
+      if (line.startsWith('#') || lower.includes('medication') || lower.includes('dosage') || lower.includes('दवा') || lower.includes('औषध')) {
+        currentSection = 'medicines';
+        if (line.startsWith('#')) continue;
+      }
+    }
+
+    // Section 5/6 Header detection (Questions to Ask Your Doctor / डॉक्टर से पूछने योग्य प्रश्न)
     if (
       lower.includes('5.') ||
       lower.includes('questions to ask your doctor') ||
@@ -358,6 +377,8 @@ function parseExplanationSections(rawText) {
       if (cleanText) conclusionLines.push(cleanText);
     } else if (currentSection === 'next_steps') {
       if (cleanText) nextSteps.push(cleanText);
+    } else if (currentSection === 'medicines') {
+      if (cleanText) medicines.push(cleanText);
     } else if (currentSection === 'doctor_questions') {
       if (cleanText) doctorQuestions.push(cleanText);
     } else {
@@ -393,6 +414,7 @@ function parseExplanationSections(rawText) {
       lines: conclusionLines
     },
     nextSteps,
+    medicines,
     doctorQuestions,
     rawLines
   };
@@ -408,6 +430,7 @@ export default function FormattedExplanation({
   onLanguageChange = null,
   onRefresh = null,
   loading = false,
+  prescription = null,
 }) {
   const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
@@ -420,6 +443,68 @@ export default function FormattedExplanation({
   }, [explanation]);
 
   const isAttention = parsed.conclusion.status === 'attention';
+
+  // Extract and format medication list if present in markdown or prescription object
+  const medicationList = useMemo(() => {
+    // 1. First priority: parsed medicine lines from summary markdown
+    if (parsed.medicines && parsed.medicines.length > 0) {
+      return parsed.medicines.map((line) => {
+        const raw = line.replace(/^\*+\s*/, '').trim();
+        let name = raw;
+        let category = '';
+        let details = '';
+
+        const nameMatch = raw.match(/^\*\*([^*]+)\*\*/);
+        if (nameMatch) {
+          name = nameMatch[1];
+          let remainder = raw.substring(nameMatch[0].length).trim();
+          const catMatch = remainder.match(/^\[([^\]]+)\]/);
+          if (catMatch) {
+            category = catMatch[1];
+            remainder = remainder.substring(catMatch[0].length).trim();
+          }
+          remainder = remainder.replace(/^[—\-:\s]+/, '').trim();
+          details = remainder;
+        }
+
+        return {
+          name,
+          category,
+          details: details || raw,
+          raw
+        };
+      });
+    }
+
+    // 2. Second priority: prescription.medicines if passed from OCR / document parser
+    if (prescription && prescription.medicines && prescription.medicines.length > 0) {
+      return prescription.medicines.map((m) => {
+        const cat = m.category || (currentLanguage === 'hi' ? 'दवा' : currentLanguage === 'mr' ? 'औषध' : 'Medication');
+        const dosageStr = m.dosage && m.dosage !== 'Standard dose' ? m.dosage : '';
+        const freqStr = m.frequency && m.frequency !== 'As directed' ? m.frequency : '';
+        const timingStr = m.timing || '';
+        const purposeStr = m.purpose || m.instructions || '';
+        const precStr = m.precautions || '';
+
+        let descParts = [];
+        if (dosageStr) descParts.push(currentLanguage === 'hi' ? `**खुराक**: ${dosageStr}` : currentLanguage === 'mr' ? `**डोस**: ${dosageStr}` : `**Dosage**: ${dosageStr}`);
+        if (freqStr) descParts.push(currentLanguage === 'hi' ? `**समय**: ${freqStr}` : currentLanguage === 'mr' ? `**वेळ**: ${freqStr}` : `**Timing**: ${freqStr}`);
+        if (timingStr) descParts.push(`(${timingStr})`);
+        if (purposeStr) descParts.push(currentLanguage === 'hi' ? `**उपयोग**: ${purposeStr}` : currentLanguage === 'mr' ? `**वापर**: ${purposeStr}` : `**Purpose**: ${purposeStr}`);
+        if (precStr) descParts.push(currentLanguage === 'hi' ? `**सावधानी**: ${precStr}` : currentLanguage === 'mr' ? `**काळजी**: ${precStr}` : `**Precautions**: ${precStr}`);
+
+        return {
+          name: m.medicine_name || m.name || 'Prescribed Medicine',
+          category: cat,
+          details: descParts.join(' | ') || m.instructions || 'Take as directed by physician',
+          raw: `${m.medicine_name || 'Medicine'} - ${dosageStr} ${freqStr}`
+        };
+      });
+    }
+
+    return [];
+  }, [parsed.medicines, prescription, currentLanguage]);
+
 
   // Final doctor questions: parsed from Gemini or synthesized specifically for the patient's report
   const doctorQuestionsList = useMemo(() => {
@@ -488,7 +573,7 @@ export default function FormattedExplanation({
               </h3>
               <span className="inline-flex items-center gap-1.5 bg-teal-500/20 border border-teal-400/40 text-teal-200 text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-2xs">
                 <Sparkles className="h-3 w-3 text-teal-300 animate-spin" style={{ animationDuration: '4s' }} />
-                <span>{t('simple_exp_powered', 'Powered by Gemini AI')}</span>
+                <span>{t('simple_exp_powered', 'AarogyaAI Clinical Engine')}</span>
               </span>
             </div>
             <p className="text-xs text-teal-200/80 mt-0.5 font-medium">
@@ -713,7 +798,92 @@ export default function FormattedExplanation({
             </div>
           )}
 
-          {/* SECTION 5: QUESTIONS TO ASK YOUR DOCTOR (AUTOMATICALLY GENERATED BASED ON REPORT & HEALTH) */}
+          {/* SECTION: MEDICATION & DOSAGE INFORMATION (RENDERED ONLY IF MEDICINES EXIST) */}
+          {medicationList.length > 0 && (
+            <div className="bg-gradient-to-br from-teal-950/60 via-slate-900 to-slate-950 border-2 border-teal-500/50 rounded-3xl p-5 sm:p-7 shadow-lg space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/5 rounded-full blur-2xl pointer-events-none" />
+
+              {/* Section Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-teal-800/50 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-teal-600/30 text-teal-300 border border-teal-400/40 rounded-2xl shadow-xs">
+                    <Pill className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-base sm:text-lg font-black text-white">
+                        5. {currentLanguage === 'hi'
+                          ? 'दवाओं से संबंधित जानकारी (Prescription Details)'
+                          : currentLanguage === 'mr'
+                          ? 'औषधांविषयी माहिती (Prescription Details)'
+                          : 'Medication & Dosage Information'}
+                      </h4>
+                      <span className="inline-flex items-center gap-1 bg-teal-500/20 text-teal-200 border border-teal-400/40 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full">
+                        {currentLanguage === 'hi' ? 'डॉक्टर की पर्ची' : currentLanguage === 'mr' ? 'प्रिस्क्रिप्शन' : 'Doctor Prescription'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-teal-200/80 mt-0.5 leading-relaxed">
+                      {currentLanguage === 'hi'
+                        ? 'इस पर्चे में सुझाई गई दवाएं, उनका उपयोग, खुराक और सेवन संबंधी आवश्यक सावधानियां।'
+                        : currentLanguage === 'mr'
+                        ? 'या प्रिस्क्रिप्शनमधील औषधे, त्यांचे उपयोग, डोस आणि सुरक्षित वापरासाठी सूचना.'
+                        : 'Prescribed medicines detected in this document with clinical purpose, dosage frequency, and safety precautions.'}
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-xs font-bold text-teal-200 bg-teal-900/60 border border-teal-700/60 px-3 py-1 rounded-xl self-start sm:self-auto">
+                  {medicationList.length} {currentLanguage === 'hi' ? 'दवाएं' : currentLanguage === 'mr' ? 'औषधे' : 'Medicines'}
+                </span>
+              </div>
+
+              {/* Medicine Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                {medicationList.map((med, mIdx) => (
+                  <div
+                    key={mIdx}
+                    className="bg-slate-900/80 border border-teal-700/40 hover:border-teal-400/60 rounded-2xl p-4 space-y-2.5 shadow-xs transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 bg-teal-500/20 rounded-lg text-teal-300">
+                          <Pill className="h-4 w-4" />
+                        </div>
+                        <h5 className="font-bold text-sm sm:text-base text-white">
+                          {med.name}
+                        </h5>
+                      </div>
+                      {med.category && (
+                        <span className="text-[10px] font-semibold text-teal-300 bg-teal-950/80 border border-teal-800/80 px-2 py-0.5 rounded-md flex-shrink-0">
+                          {med.category}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Dosage & Instructions */}
+                    <div className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
+                      {renderInlineFormatted(med.details || med.raw)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Safety Alert Footer */}
+              <div className="bg-amber-950/30 border border-amber-500/30 rounded-xl p-3 text-[11px] text-amber-200/90 flex items-start gap-2.5">
+                <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="leading-relaxed">
+                  <strong>{currentLanguage === 'hi' ? 'दवा सुरक्षा निर्देश:' : currentLanguage === 'mr' ? 'औषध सुरक्षा सूचना:' : 'Medication Safety Notice:'}</strong>{' '}
+                  {currentLanguage === 'hi'
+                    ? 'सभी दवाएं केवल अपने डॉक्टर के प्रत्यक्ष पर्चे और परामर्श के अनुसार ही लें। बिना डॉक्टर की सलाह के किसी भी दवा की खुराक न बदलें और न ही बंद करें।'
+                    : currentLanguage === 'mr'
+                    ? 'सर्व औषधे केवळ डॉक्टरांच्या सल्ल्यानुसारच घ्या. डॉक्टरांना विचारल्याशिवाय औषधांचा डोस बदलू नका किंवा बंद करू नका.'
+                    : 'Always take prescribed medications strictly under the guidance of your doctor or registered healthcare provider. Do not start, alter, or discontinue any medicine without medical consultation.'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 5/6: QUESTIONS TO ASK YOUR DOCTOR (AUTOMATICALLY GENERATED BASED ON REPORT & HEALTH) */}
           {doctorQuestionsList.length > 0 && (
             <div className="bg-gradient-to-br from-teal-950/70 via-slate-900 to-slate-950 border-2 border-teal-500/40 rounded-3xl p-5 sm:p-7 shadow-lg space-y-4 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/5 rounded-full blur-2xl pointer-events-none" />
@@ -727,7 +897,7 @@ export default function FormattedExplanation({
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="text-base sm:text-lg font-black text-white">
-                        5. {t('questions_to_ask_title', 'Questions to Ask Your Doctor')}
+                        {medicationList.length > 0 ? '6.' : '5.'} {t('questions_to_ask_title', 'Questions to Ask Your Doctor')}
                       </h4>
                       <span className="hidden sm:inline-flex items-center gap-1 bg-teal-500/20 text-teal-200 border border-teal-400/40 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full">
                         {t('questions_to_ask_badge', 'Clinical Consultation Prep')}
@@ -849,7 +1019,7 @@ export default function FormattedExplanation({
               <span>{t('simple_exp_disclaimer', 'This is an AI-assisted explanation of the uploaded report and is not a medical diagnosis.')}</span>
             </span>
             <span className="font-semibold text-teal-300 bg-slate-800/60 px-2.5 py-1 rounded-lg border border-teal-700/30">
-              {t('simple_exp_model', 'Model: Gemini 3.6 Flash')}
+              {t('simple_exp_model', 'Engine: Aarogya Clinical AI')}
             </span>
           </div>
         </div>

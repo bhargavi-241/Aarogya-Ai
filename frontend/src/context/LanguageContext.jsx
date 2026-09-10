@@ -153,9 +153,9 @@ export const translations = {
 
     // Simple Explanation
     simple_exp_title: 'Simple Explanation',
-    simple_exp_powered: 'Powered by Gemini AI',
+    simple_exp_powered: 'AarogyaAI Clinical Engine',
     simple_exp_disclaimer: 'This is an AI-assisted explanation of the uploaded report and is not a medical diagnosis.',
-    simple_exp_model: 'Model: Gemini 3.6 Flash',
+    simple_exp_model: 'Engine: Aarogya Clinical AI',
     section_overview: 'Report Overview',
     section_params: 'Parameters Breakdown',
     section_normal_params: 'Normal Parameters',
@@ -356,9 +356,9 @@ export const translations = {
 
     // Simple Explanation
     simple_exp_title: 'सरल स्पष्टीकरण',
-    simple_exp_powered: 'Gemini AI द्वारा संचालित',
+    simple_exp_powered: 'AarogyaAI क्लिनिकल इंजन',
     simple_exp_disclaimer: 'यह अपलोड की गई रिपोर्ट का AI-सहायता प्राप्त स्पष्टीकरण है और यह चिकित्सीय निदान नहीं है।',
-    simple_exp_model: 'मॉडल: Gemini 3.6 Flash',
+    simple_exp_model: 'इंजन: Aarogya क्लिनिकल AI',
     section_overview: 'रिपोर्ट का विवरण (Overview)',
     section_params: 'मापदंडों का विश्लेषण (Parameters)',
     section_normal_params: 'सामान्य मापदंड (Normal)',
@@ -559,9 +559,9 @@ export const translations = {
 
     // Simple Explanation
     simple_exp_title: 'सोपे स्पष्टीकरण',
-    simple_exp_powered: 'Gemini AI द्वारे समर्थित',
+    simple_exp_powered: 'AarogyaAI क्लिनिकल इंजिन',
     simple_exp_disclaimer: 'हे अपलोड केलेल्या अहवालाचे AI-सहाय्यित स्पष्टीकरण आहे आणि हे वैद्यकीय निदान नाही.',
-    simple_exp_model: 'मॉडेल: Gemini 3.6 Flash',
+    simple_exp_model: 'इंजिन: Aarogya क्लिनिकल AI',
     section_overview: 'अहवाल विहंगावलोकन (Overview)',
     section_params: 'पॅरामीटर्स तपशील (Parameters)',
     section_normal_params: 'सामान्य पॅरामीटर्स (Normal)',
