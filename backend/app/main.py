@@ -98,7 +98,7 @@ def test_gemini():
     key_preview = f"{api_key[:6]}...{api_key[-4:]}" if len(api_key) > 10 else "too_short"
     import httpx
     results = {}
-    for model in ["gemini-1.5-flash", "gemini-2.0-flash"]:
+    for model in ["gemini-3.6-flash", "gemini-3.6-pro", "gemini-2.0-flash"]:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
         try:
             with httpx.Client(timeout=10.0) as client:

@@ -61,7 +61,7 @@ def call_gemini_api(prompt: str, system_instruction: str = "", language: str = "
         if sys_inst:
             payload["systemInstruction"] = {"parts": [{"text": sys_inst}]}
 
-        for model in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash"]:
+        for model in ["gemini-3.6-flash", "gemini-3.6-pro", "gemini-2.0-flash", "gemini-1.5-flash"]:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
             try:
                 with httpx.Client(timeout=18.0) as client:

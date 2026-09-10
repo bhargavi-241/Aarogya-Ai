@@ -424,7 +424,7 @@ def analyze_document_with_gemini_vision(file_path: str, file_type: str) -> Optio
             }
         }
 
-        for model in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash"]:
+        for model in ["gemini-3.6-flash", "gemini-3.6-pro", "gemini-2.0-flash", "gemini-1.5-flash"]:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
             try:
                 with httpx.Client(timeout=25.0) as client:
