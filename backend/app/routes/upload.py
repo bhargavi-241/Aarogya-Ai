@@ -76,16 +76,24 @@ async def upload_document(
     async with aiofiles.open(dest_path, "wb") as f_out:
         await f_out.write(contents)
 
+    # Classify immediately upon upload so the client receives validation in one atomic HTTP response
+    validation_result = classify_medical_document(str(dest_path), ext)
+
+    initial_status = "medical_verified" if validation_result.get("is_medical") is True else (
+        "uncertain_review" if validation_result.get("status") == "uncertain" or validation_result.get("is_medical") is None else "rejected_non_medical"
+    )
+
     report = Report(
         filename=safe_name,
         original_filename=file.filename or safe_name,
-        status="uploaded"
+        ocr_text=validation_result.get("extracted_text"),
+        status=initial_status
     )
     db.add(report)
     db.commit()
     db.refresh(report)
 
-    logger.info("Uploaded document id=%d (%s), size=%d bytes", report.id, safe_name, len(contents))
+    logger.info("Uploaded and validated document id=%d (%s), status=%s", report.id, safe_name, report.status)
 
     return {
         "file_id": report.id,
@@ -94,7 +102,9 @@ async def upload_document(
         "file_path": str(dest_path),
         "file_type": ext,
         "size_bytes": len(contents),
-        "message": "Document successfully uploaded and stored for validation."
+        "message": "Document successfully uploaded and validated.",
+        "validation": validation_result,
+        **validation_result
     }
 
 

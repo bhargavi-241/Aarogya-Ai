@@ -167,31 +167,40 @@ export default function UnderstandPage() {
     setStep(1);
 
     try {
-      // 1. Upload to backend
+      // 1. Upload to backend (backend atomically runs medical validation)
       const upRes = await uploadDocument(file);
       setUploadResult(upRes.data);
 
-      // 2. Validate document classification with multi-signal weighted scoring
-      setUploading(false);
-      setValidating(true);
-      setStep(2);
+      const valResult = upRes.data.validation || (upRes.data.is_medical !== undefined ? upRes.data : null);
 
-      const valRes = await validateDocument(upRes.data.file_id);
-      setValidationResult(valRes.data);
+      let finalValRes = valResult;
+      if (!finalValRes) {
+        setUploading(false);
+        setValidating(true);
+        setStep(2);
+        const valRes = await validateDocument(upRes.data.file_id);
+        finalValRes = valRes.data;
+      }
+      setValidationResult(finalValRes);
 
       // Fast-track pipeline: if confirmed medical document, auto-advance immediately to OCR and analysis!
-      if (valRes.data?.is_medical === true) {
+      if (finalValRes?.is_medical === true) {
+        setUploading(false);
         setValidating(false);
         setOcrLoading(true);
         setStep(3);
 
-        const ocrRes = await performOCR(upRes.data.file_id, language);
+        const ocrRes = await performOCR(upRes.data.file_id, language, finalValRes.extracted_text);
         setOcrData(ocrRes.data);
         const initialExp = ocrRes.data.simple_explanation || ocrRes.data.report_summary || ocrRes.data.summary;
         if (initialExp) {
           setSummaryCache({ [language]: initialExp });
         }
         setStep(6);
+      } else {
+        setUploading(false);
+        setValidating(false);
+        setStep(2);
       }
     } catch (err) {
       const msg = err?.response?.data?.detail || err?.message || 'Processing failed. Please try again.';
@@ -212,7 +221,8 @@ export default function UnderstandPage() {
     setStep(3); // Preprocessing & OCR
 
     try {
-      const ocrRes = await performOCR(uploadResult.file_id, language);
+      const cached = validationResult?.extracted_text || null;
+      const ocrRes = await performOCR(uploadResult.file_id, language, cached);
       setOcrData(ocrRes.data);
       const initialExp = ocrRes.data.simple_explanation || ocrRes.data.report_summary || ocrRes.data.summary;
       if (initialExp) {

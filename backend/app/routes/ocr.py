@@ -20,12 +20,17 @@ from app.services.report_comparison_service import compare_two_reports
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["ocr"])
 
-UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
+if os.environ.get("VERCEL"):
+    UPLOAD_DIR = Path("/tmp/uploads")
+else:
+    UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class OCRRequest(BaseModel):
     file_id: int
     language: Optional[str] = "en"
+    cached_text: Optional[str] = None
 
 
 class VerifyRequest(BaseModel):
@@ -55,30 +60,37 @@ def run_document_ocr(payload: OCRRequest, db: Session = Depends(get_db)):
     Enforces non-medical rejection guard while supporting 20+ clinical document categories.
     """
     report = db.get(Report, payload.file_id)
-    if not report:
-        raise HTTPException(status_code=404, detail=f"Document id {payload.file_id} not found.")
+    cached = payload.cached_text
+    
+    if report:
+        # Guard: Reject non-medical files
+        if report.status == "rejected_non_medical":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The uploaded file was identified as non-medical. Medical entity extraction cannot be performed."
+            )
+        cached = cached or report.ocr_text
+        file_path = UPLOAD_DIR / report.filename
+        ext = report.filename.rsplit(".", 1)[-1].lower() if "." in report.filename else "jpg"
+        orig_name = report.original_filename
+        report.status = "processing"
+        db.commit()
+    else:
+        file_path = UPLOAD_DIR / f"doc_{payload.file_id}.jpg"
+        ext = "jpg"
+        orig_name = f"document_{payload.file_id}"
+        if not cached and not file_path.exists():
+            raise HTTPException(status_code=404, detail=f"Document id {payload.file_id} not found.")
 
-    # Guard: Reject non-medical files
-    if report.status == "rejected_non_medical":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The uploaded file was identified as non-medical. Medical entity extraction cannot be performed."
-        )
-
-    file_path = UPLOAD_DIR / report.filename
-    if not file_path.exists():
+    if not file_path.exists() and not cached:
         raise HTTPException(status_code=404, detail="Underlying document file was not found.")
 
-    report.status = "processing"
-    db.commit()
-
     try:
-        ext = report.filename.rsplit(".", 1)[-1].lower()
         result = process_document(
             str(file_path),
             ext,
             language=payload.language or "en",
-            cached_text=report.ocr_text
+            cached_text=cached
         )
     except Exception as exc:
         report.status = "error"

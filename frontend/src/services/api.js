@@ -32,8 +32,8 @@ export const validateDocument = (fileId) => {
   return api.post('/validate-document', { file_id: fileId });
 };
 
-export const performOCR = (fileId, language = 'en') => {
-  return api.post('/ocr', { file_id: fileId, language });
+export const performOCR = (fileId, language = 'en', cachedText = null) => {
+  return api.post('/ocr', { file_id: fileId, language, cached_text: cachedText });
 };
 
 export const verifyOCR = (fileId, verifiedFields) => {
