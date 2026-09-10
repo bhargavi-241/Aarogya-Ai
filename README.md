@@ -1,4 +1,4 @@
-# Aarogya-Ai
+  # Aarogya-Ai
 
 <p align="center">
   <img src="frontend/public/logo-brand.png" alt="Aarogya-Ai Logo" width="420" />
