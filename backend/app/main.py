@@ -89,28 +89,6 @@ def root():
         "disclaimer": "This system provides informational risk indications only and is not a medical diagnosis."
     }
 
-@app.get("/api/test-gemini")
-def test_gemini():
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
-    if not api_key or api_key.startswith("your_"):
-        return {"has_key": False, "key_length": len(api_key)}
-    
-    key_preview = f"{api_key[:6]}...{api_key[-4:]}" if len(api_key) > 10 else "too_short"
-    import httpx
-    results = {}
-    for model in ["gemini-3.6-flash", "gemini-3.6-pro", "gemini-2.0-flash"]:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-        try:
-            with httpx.Client(timeout=10.0) as client:
-                resp = client.post(url, json={"contents": [{"parts": [{"text": "Hello"}]}]})
-                results[model] = {
-                    "status_code": resp.status_code,
-                    "response": resp.text[:200]
-                }
-        except Exception as e:
-            results[model] = {"error": str(e)}
-    return {"has_key": True, "key_preview": key_preview, "results": results}
-
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
