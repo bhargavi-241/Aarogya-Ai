@@ -16,7 +16,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'ai_health.db'}")
+if os.environ.get("VERCEL") and not os.getenv("DATABASE_URL"):
+    DATABASE_URL = "sqlite:////tmp/ai_health.db"
+else:
+    DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'ai_health.db'}")
+
 
 engine = create_engine(
     DATABASE_URL,

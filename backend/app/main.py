@@ -29,7 +29,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger("ai_health_app")
 
-UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads"
+if os.environ.get("VERCEL"):
+    UPLOAD_DIR = Path("/tmp/uploads")
+else:
+    UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
@@ -76,6 +79,7 @@ def startup_event():
     logger.info("Database initialised. Uploads path: %s", UPLOAD_DIR)
 
 @app.get("/")
+@app.get("/api")
 def root():
     return {
         "app": "AarogyaAI API",

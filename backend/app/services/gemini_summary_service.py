@@ -38,8 +38,53 @@ def get_system_instruction(language: str = "en") -> str:
 
 
 def get_configured_model(language: str = "en") -> Optional[Any]:
-    """Compatibility stub for external callers. Returns None to ensure 100% local execution."""
+    """Compatibility stub for external callers."""
+    return "gemini-1.5-flash" if os.getenv("GEMINI_API_KEY") else None
+
+
+def call_gemini_api(prompt: str, system_instruction: str = "", language: str = "en") -> Optional[str]:
+    """
+    Calls Google Gemini REST API if GEMINI_API_KEY is configured in environment.
+    Supports candidate models: gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash.
+    Returns None if key is missing or if all models fail.
+    """
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key or api_key.startswith("your_"):
+        return None
+
+    try:
+        import httpx
+        sys_inst = system_instruction or get_system_instruction(language)
+        payload: dict[str, Any] = {
+            "contents": [{"parts": [{"text": prompt}]}]
+        }
+        if sys_inst:
+            payload["systemInstruction"] = {"parts": [{"text": sys_inst}]}
+
+        for model in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash"]:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            try:
+                with httpx.Client(timeout=18.0) as client:
+                    resp = client.post(url, json=payload)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        candidates = data.get("candidates", [])
+                        if candidates:
+                            parts = candidates[0].get("content", {}).get("parts", [])
+                            if parts:
+                                txt = parts[0].get("text", "").strip()
+                                if txt:
+                                    logger.info("Successfully generated AI response via Gemini model: %s", model)
+                                    return txt
+                    else:
+                        logger.warning("Gemini model %s returned status %d: %s", model, resp.status_code, resp.text[:120])
+            except Exception as m_err:
+                logger.warning("Gemini model %s request error: %s", model, m_err)
+    except Exception as exc:
+        logger.warning("call_gemini_api general failure: %s", exc)
+
     return None
+
 
 
 # ---------------------------------------------------------------------------
@@ -1070,7 +1115,18 @@ def generate_gemini_report_summary(
 # ---------------------------------------------------------------------------
 
 def generate_gemini_term_explanation(term: str, context: str = "", language: str = "en") -> Optional[str]:
-    """Explains an individual clinical term locally on the backend codebase in EN, HI, or MR."""
+    """Explains an individual clinical term with Gemini AI or local clinical knowledge base."""
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if api_key and not api_key.startswith("your_"):
+        prompt = (
+            f"Explain the medical term or test '{term}' in simple, reassuring words for a patient in {language} language.\n"
+            f"Context: {context[:300]}\n"
+            f"Provide: 1. What it means in plain language, 2. Why it matters to their health."
+        )
+        ai_exp = call_gemini_api(prompt, language=language)
+        if ai_exp:
+            return ai_exp
+
     from app.services.explanation_service import get_explanation
     lang = (language or "en").lower().strip()
     data = get_explanation(term)
@@ -1118,22 +1174,44 @@ def generate_ai_symptom_analysis(
     language: str = "en"
 ) -> dict[str, Any]:
     """
-    Evaluates patient-described symptoms or health questions using a comprehensive
-    multi-domain clinical reasoning engine running 100% locally on the backend codebase.
+    Evaluates patient-described symptoms or health questions using Google Gemini AI
+    with automatic fallback to Aarogya Clinical Reasoning Engine.
     """
     raw_input = (symptoms_text or "").strip()
     detected_lang = detect_symptom_language(raw_input, language)
 
     fallback_data = _build_clinical_symptom_fallback(raw_input, detected_lang)
 
+    # Check if Gemini AI can provide enriched guidance
+    gemini_guidance = None
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if api_key and not api_key.startswith("your_"):
+        prompt = (
+            f"You are AarogyaAI Clinical Intelligence Assistant. A patient reports the following symptoms: '{raw_input}'.\n"
+            f"Provide a clear, reassuring clinical breakdown in {detected_lang} language.\n"
+            f"Structure your answer with:\n"
+            f"1. What might be happening\n"
+            f"2. Biological reasons / mechanism\n"
+            f"3. Recommended specialist doctor & laboratory tests\n"
+            f"4. Urgent signs / Red flags to seek emergency medical attention\n"
+            f"5. Questions to ask their doctor.\n"
+            f"Keep it empathetic and easy to understand. Note that this is for information only, not an official diagnosis."
+        )
+        gemini_guidance = call_gemini_api(prompt, language=detected_lang)
+
+    is_gemini = bool(gemini_guidance)
+    final_guidance = gemini_guidance if is_gemini else fallback_data.get("direct_guidance")
+    final_markdown = gemini_guidance if is_gemini else fallback_data.get("markdown_explanation", "")
+
     return {
         "success": True,
         "is_ai_generated": True,
-        "source": "clinical_engine",
+        "source": "gemini_ai" if is_gemini else "clinical_engine",
+        "model": "Google Gemini AI" if is_gemini else "Aarogya Clinical AI",
         "language": detected_lang,
-        "direct_guidance": fallback_data.get("direct_guidance"),
+        "direct_guidance": final_guidance,
         "direct_answer": fallback_data.get("direct_answer", ""),
-        "markdown_explanation": fallback_data.get("markdown_explanation", ""),
+        "markdown_explanation": final_markdown,
         "primary_domain": fallback_data.get("primary_domain", "general"),
         "system": fallback_data.get("system", "General Health"),
         "specialist": fallback_data.get("specialist", "General Physician"),
@@ -1143,6 +1221,7 @@ def generate_ai_symptom_analysis(
         "red_flags": fallback_data.get("red_flags", []),
         "doctor_questions": fallback_data.get("doctor_questions", [])
     }
+
 
 
 def _build_clinical_symptom_fallback(raw_text: str, language: str = "en") -> dict[str, Any]:
@@ -1726,6 +1805,25 @@ def ask_health_assistant(
             "model": "Aarogya Clinical AI",
             "suggestions": ["What do normal blood sugar levels look like?", "What does high blood pressure mean?"]
         }
+
+    # If GEMINI_API_KEY is configured, ask Google Gemini AI
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if api_key and not api_key.startswith("your_"):
+        context_block = f"\nReport Context: {report_context[:3000]}" if report_context else ""
+        prompt = (
+            f"You are AarogyaAI Health Assistant. A patient asks: '{clean_q}'.{context_block}\n"
+            f"Answer in clear, empathetic {lang} language. Provide practical health insights, "
+            f"what they should know, and helpful next steps."
+        )
+        gemini_answer = call_gemini_api(prompt, language=lang)
+        if gemini_answer:
+            suggestions = _extract_or_generate_suggestions(clean_q, gemini_answer, lang)
+            return {
+                "answer": gemini_answer,
+                "source": "gemini_ai",
+                "model": "Google Gemini AI",
+                "suggestions": suggestions
+            }
 
     # Generate rich answer using local clinical knowledge base
     fallback_result = _generate_clinical_fallback_answer(clean_q, report_context, lang)

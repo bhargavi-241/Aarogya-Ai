@@ -19,7 +19,10 @@ from app.services.document_validation_service import classify_medical_document
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["upload"])
 
-UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
+if os.environ.get("VERCEL"):
+    UPLOAD_DIR = Path("/tmp/uploads")
+else:
+    UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 MAX_SIZE_BYTES = int(os.getenv("MAX_UPLOAD_SIZE_MB", "10")) * 1024 * 1024
