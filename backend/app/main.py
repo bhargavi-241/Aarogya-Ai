@@ -89,8 +89,6 @@ def startup_event():
 
 @app.get("/")
 @app.get("/api")
-@app.get("/health")
-@app.get("/api/health")
 def root():
     return {
         "status": "healthy",
