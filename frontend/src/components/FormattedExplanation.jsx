@@ -19,7 +19,8 @@ import {
   HelpCircle,
   MessageSquareQuote,
   CheckSquare,
-  Square
+  Square,
+  Pill
 } from 'lucide-react';
 import { useLanguage, LANGUAGES } from '../context/LanguageContext';
 

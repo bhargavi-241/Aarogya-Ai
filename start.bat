@@ -10,10 +10,15 @@ if "%PROJ_ROOT:~-1%"=="\" set "PROJ_ROOT=%PROJ_ROOT:~0,-1%"
 cd /d "%PROJ_ROOT%"
 
 echo [1/3] Checking Python virtual environment...
-if not exist "%PROJ_ROOT%\venv\Scripts\python.exe" (
+if exist "%PROJ_ROOT%\venv\Scripts\python.exe" (
+    set "VENV_ACTIVATE=%PROJ_ROOT%\venv\Scripts\activate.bat"
+) else if exist "%PROJ_ROOT%\..\venv\Scripts\python.exe" (
+    set "VENV_ACTIVATE=%PROJ_ROOT%\..\venv\Scripts\activate.bat"
+) else (
     echo Creating virtual environment...
     python -m venv venv
-    call "%PROJ_ROOT%\venv\Scripts\activate.bat"
+    set "VENV_ACTIVATE=%PROJ_ROOT%\venv\Scripts\activate.bat"
+    call "%VENV_ACTIVATE%"
     python -m pip install -r backend\requirements.txt
     python backend\ml\run_training.py
 )
@@ -30,7 +35,7 @@ echo [3/3] Launching FastAPI Backend and Vite Frontend...
 echo.
 echo Starting Backend Server on http://127.0.0.1:8000 ...
 cd /d "%PROJ_ROOT%\backend"
-start "AarogyaAI Backend" cmd /k "set PYTHONUTF8=1&& call ..\venv\Scripts\activate.bat&& python -m uvicorn app.main:app --reload --port 8000 --host 0.0.0.0"
+start "AarogyaAI Backend" cmd /k "set PYTHONUTF8=1&& call \"%VENV_ACTIVATE%\"&& python -m uvicorn app.main:app --reload --port 8000 --host 0.0.0.0"
 
 rem Wait 2 seconds safely without redirection errors
 ping 127.0.0.1 -n 3 >nul

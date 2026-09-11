@@ -107,6 +107,14 @@ def run_document_ocr(payload: OCRRequest, db: Session = Depends(get_db)):
     report.status = "analyzed"
     db.commit()
 
+    is_rx = (
+        result.get("document_category") == "Doctor Prescription"
+        or (result.get("prescription") and len(result.get("prescription", {}).get("medicines", [])) > 0)
+        or "prescription" in str(result.get("document_type", "")).lower()
+        or "prescription" in str(result.get("document_label", "")).lower()
+    )
+    doc_category = "Doctor Prescription" if is_rx else "Medical Report"
+
     return {
         "success": True,
         "file_id": payload.file_id,
@@ -119,7 +127,7 @@ def run_document_ocr(payload: OCRRequest, db: Session = Depends(get_db)):
         "analysis": result.get("analysis", {}),
         "document_type": result.get("document_type"),
         "document_label": result.get("document_label"),
-        "document_category": result.get("document_category"),
+        "document_category": doc_category,
         "patient_information": result.get("patient_information", {}),
         "structured_markdown": result.get("structured_markdown", ""),
         "report_summary": result.get("report_summary") or result.get("summary") or result.get("simple_explanation"),

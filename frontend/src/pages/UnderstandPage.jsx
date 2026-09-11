@@ -159,7 +159,7 @@ export default function UnderstandPage() {
 
   const onDragLeave = () => setDragging(false);
 
-  // STEP 1 & 2: Upload File & Run Medical Document Validation
+  // STEP 1 & 2: Upload File & Run Medical Document Validation + Immediate OCR Analysis
   const handleUploadAndValidate = async () => {
     if (!file) return;
     setUploading(true);
@@ -167,8 +167,8 @@ export default function UnderstandPage() {
     setStep(1);
 
     try {
-      // 1. Upload to backend (backend atomically runs medical validation)
-      const upRes = await uploadDocument(file);
+      // 1. Upload to backend (backend atomically runs OCR classification and clinical summarization)
+      const upRes = await uploadDocument(file, language);
       setUploadResult(upRes.data);
 
       const valResult = upRes.data.validation || (upRes.data.is_medical !== undefined ? upRes.data : null);
@@ -183,7 +183,30 @@ export default function UnderstandPage() {
       }
       setValidationResult(finalValRes);
 
-      // Fast-track pipeline: if confirmed medical document, auto-advance immediately to OCR and analysis!
+      // If document is identified as non-medical, halt and display rejection
+      if (finalValRes?.is_medical === false) {
+        setUploading(false);
+        setValidating(false);
+        setOcrLoading(false);
+        setStep(2);
+        return;
+      }
+
+      // Fast-track pipeline: if backend already extracted entities and summary on upload
+      if (finalValRes?.is_medical === true && (upRes.data.summary || upRes.data.parameters?.length > 0 || upRes.data.prescription || upRes.data.raw_text)) {
+        setUploading(false);
+        setValidating(false);
+        setOcrLoading(false);
+        setOcrData(upRes.data);
+        const initialExp = upRes.data.simple_explanation || upRes.data.report_summary || upRes.data.summary;
+        if (initialExp) {
+          setSummaryCache({ [language]: initialExp });
+        }
+        setStep(6);
+        return;
+      }
+
+      // Fallback: If confirmed medical document but not pre-analyzed, run performOCR
       if (finalValRes?.is_medical === true) {
         setUploading(false);
         setValidating(false);
@@ -688,10 +711,12 @@ Uric Acid: 7.8 mg/dL (3.5 - 7.2)`,
                       ✓ Validation Check: Passed
                     </span>
                     <h3 className="text-xl sm:text-2xl font-black text-emerald-950 mt-1">
-                      ✓ Medical Document Detected
+                      {validationResult.document_category === 'Doctor Prescription' || validationResult.document_type?.toLowerCase().includes('prescription')
+                        ? '✓ Doctor Prescription Detected'
+                        : '✓ Medical Report Detected'}
                     </h3>
                     <p className="text-xs sm:text-sm font-bold text-emerald-800 mt-0.5">
-                      Document type: <span className="underline">{validationResult.document_label || validationResult.document_type || 'Laboratory Report'}</span>
+                      Category: <span className="underline">{validationResult.document_category || 'Medical Report'}</span> • <span className="text-slate-600 font-medium">{validationResult.document_label || validationResult.document_type || 'Laboratory Report'}</span>
                     </p>
                   </div>
                 </div>
@@ -975,10 +1000,14 @@ Uric Acid: 7.8 mg/dL (3.5 - 7.2)`,
                 </div>
                 <div>
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full">
-                    {t('rep_badge_analyzed', '✓ Medical Report Analyzed')}
+                    {ocrData.document_category === 'Doctor Prescription' || ocrData.document_type?.toLowerCase().includes('prescription')
+                      ? '✓ Doctor Prescription Analyzed'
+                      : t('rep_badge_analyzed', '✓ Medical Report Analyzed')}
                   </span>
                   <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-                    {t('rep_title_summary', 'Medical Report Summary')}
+                    {ocrData.document_category === 'Doctor Prescription' || ocrData.document_type?.toLowerCase().includes('prescription')
+                      ? 'Doctor Prescription Summary'
+                      : t('rep_title_summary', 'Medical Report Summary')}
                   </h3>
                 </div>
               </div>
@@ -1029,9 +1058,11 @@ Uric Acid: 7.8 mg/dL (3.5 - 7.2)`,
                 </div>
               )}
               <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70">
-                <span className="text-[11px] font-semibold uppercase text-slate-500 block mb-1">{t('rep_label_report', 'REPORT')}</span>
+                <span className="text-[11px] font-semibold uppercase text-slate-500 block mb-1">
+                  {ocrData.document_category === 'Doctor Prescription' ? 'PRESCRIPTION CATEGORY' : t('rep_label_report', 'REPORT')}
+                </span>
                 <strong className="text-teal-900 text-sm block">
-                  {tText(ocrData.patient_information?.report || ocrData.document_type || 'Doctor Prescription')}
+                  {tText(ocrData.document_category ? `${ocrData.document_category} • ${ocrData.document_label || ocrData.document_type || ''}` : (ocrData.patient_information?.report || ocrData.document_type || 'Doctor Prescription'))}
                 </strong>
               </div>
               {ocrData.patient_information?.clinic_name && (

@@ -154,7 +154,17 @@ PRESCRIPTION_TERMS = [
     r"\bchief\s+complaints?\b", r"\badvised\b", r"\bfollow\s+up\b", r"\bmetformin\b",
     r"\baspirin\b", r"\batorvastatin\b", r"\blisinopril\b", r"\bamlodipine\b",
     r"\bomeprazole\b", r"\bparacetamol\b", r"\bpantoprazole\b", r"\btelmisartan\b",
-    r"\blosartan\b", r"\bamoxicillin\b", r"\bazithromycin\b", r"\binsulin\b"
+    r"\blosartan\b", r"\bamoxicillin\b", r"\bazithromycin\b", r"\binsulin\b",
+    r"\bclopidogrel\b", r"\brosuvastatin\b", r"\bsimvastatin\b", r"\bmetoprolol\b",
+    r"\batenolol\b", r"\bramipril\b", r"\bglimepiride\b", r"\bglycomet\b",
+    r"\bdolo\b", r"\bcalpol\b", r"\bcrocin\b", r"\bcombiflam\b", r"\bmeftal\b",
+    r"\brabeprazole\b", r"\branitidine\b", r"\bcetirizine\b", r"\bloratadine\b",
+    r"\bmontelukast\b", r"\bsalbutamol\b", r"\blevothyroxine\b", r"\bibuprofen\b",
+    r"\bdiclofenac\b", r"\btramadol\b", r"\bprednisolone\b", r"\bdexamethasone\b",
+    r"\bspironolactone\b", r"\bfurosemide\b", r"\bteneligliptin\b", r"\bdapagliflozin\b",
+    r"\bciprofloxacin\b", r"\bcefixime\b", r"\bdoxycycline\b", r"\bclarithromycin\b",
+    r"\bopd\b", r"\bconsultation\b", r"\bdrops?\b", r"\bointment\b", r"\beye\s*drops?\b",
+    r"\bfor\s+\d+\s+days\b", r"\b\d+\s+days\b", r"\bempty\s+stomach\b", r"\bbedtime\b"
 ]
 
 DIAGNOSTIC_IMAGING_TERMS = [
@@ -690,7 +700,8 @@ def classify_medical_text(
     score_units = min(len(matched_units) * 4 + structured_rows_found * 3, 10)
     score_ranges = 15 if (matched_range_headers or has_range_pattern) else 0
     score_rx_structure = min(len(matched_prescription) * 5, 15)
-    score_table = 10 if (has_visual_table or len(matched_range_headers) >= 2 or structured_rows_found >= 2) else 0
+    has_any_med_text = bool(matched_hospital or matched_patient or matched_med_headers or matched_tests or matched_units or matched_range_headers or matched_prescription or matched_diagnostic or matched_discharge)
+    score_table = 10 if ((has_visual_table and has_any_med_text) or len(matched_range_headers) >= 2 or structured_rows_found >= 2) else 0
     score_doctor = 10 if any("dr" in s.lower() or "physician" in s.lower() or "mbbs" in s.lower() for s in matched_hospital) else 0
     score_diagnostic = min(len(matched_diagnostic) * 5, 15)
     score_discharge = min(len(matched_discharge) * 6, 15)
@@ -795,11 +806,13 @@ def classify_medical_text(
             neg_type = "non_medical_resume"
             neg_reason = "Curriculum Vitae / Resume markers detected"
 
+        doc_category = "Doctor Prescription" if doc_type == "prescription" else "Medical Report"
         return {
             "is_medical": False,
             "status": "non_medical",
             "document_type": neg_type,
             "document_label": "Non-Medical Document",
+            "document_category": "Non-Medical",
             "confidence": 0.96,
             "medical_score": total_medical_score,
             "reason": neg_reason,
@@ -812,11 +825,13 @@ def classify_medical_text(
     # State 1: High Confidence Medical Document (Score >= 20 or positive signals)
     if total_medical_score >= 20:
         conf_val = round(min(0.78 + (total_medical_score / 350.0), 0.98), 2)
+        doc_category = "Doctor Prescription" if doc_type == "prescription" else "Medical Report"
         return {
             "is_medical": True,
             "status": "medical",
             "document_type": doc_type,
             "document_label": doc_label,
+            "document_category": doc_category,
             "confidence": conf_val,
             "medical_score": total_medical_score,
             "reason": doc_reason,
@@ -826,8 +841,8 @@ def classify_medical_text(
             "debug": debug_diagnostics
         }
 
-    # State 1b: Visual Table Grid Detected without non-medical markers
-    if has_visual_table and total_negative_signals == 0:
+    # State 1b: Visual Table Grid Detected with supporting text cues without non-medical markers
+    if has_visual_table and total_negative_signals == 0 and (len(all_positive_indicators) >= 2 or (len(all_positive_indicators) >= 1 and total_medical_score >= 15) or len(norm_text.split()) >= 20):
         table_score = max(total_medical_score, 30)
         conf_val = round(min(0.80 + (table_score / 350.0), 0.95), 2)
         return {
@@ -835,6 +850,7 @@ def classify_medical_text(
             "status": "medical",
             "document_type": "medical_report",
             "document_label": "Medical Report / Structured Test Document",
+            "document_category": "Medical Report",
             "confidence": conf_val,
             "medical_score": table_score,
             "reason": "Structured medical table layout and test grid detected.",
@@ -845,13 +861,15 @@ def classify_medical_text(
         }
 
     # State 2: Medium Confidence / Uncertain (Never reject as non-medical!)
-    if (total_medical_score >= 6) or (len(raw_text.split()) < 6 and not matched_id and not matched_academic and not matched_financial and not matched_resume and file_size_bytes > 5000):
+    if (total_medical_score >= 6) or (len(raw_text.split()) < 6 and not matched_id and not matched_academic and not matched_financial and not matched_resume and file_size_bytes > 5000 and (total_medical_score > 0 or len(all_positive_indicators) > 0)):
         effective_score = max(total_medical_score, 15)
+        doc_category = "Doctor Prescription" if (matched_prescription or "rx" in norm_text) else "Medical Report"
         return {
             "is_medical": None,
             "status": "uncertain",
             "document_type": "uncertain",
             "document_label": "Document Under Review (Uncertain)",
+            "document_category": doc_category,
             "confidence": 0.60,
             "medical_score": effective_score,
             "reason": "Document could not be classified confidently. OCR clarity is low or layout is ambiguous.",
@@ -867,6 +885,7 @@ def classify_medical_text(
         "status": "non_medical",
         "document_type": "non_medical",
         "document_label": "Non-Medical File",
+        "document_category": "Non-Medical",
         "confidence": 0.92,
         "medical_score": total_medical_score,
         "reason": "No clinical parameters, reference ranges, or medical structures detected",
@@ -906,12 +925,14 @@ def classify_medical_document(file_path: str, file_type: str) -> dict[str, Any]:
         raw_text = gemini_vision_res.get("extracted_text", "")
         ocr_conf = round(conf_val * 100.0, 1)
 
+        is_rx = "prescription" in doc_type.lower() or "prescription" in doc_label.lower()
         if is_med:
             result = {
                 "is_medical": True,
                 "status": "medical",
                 "document_type": doc_type,
                 "document_label": doc_label,
+                "document_category": "Doctor Prescription" if is_rx else "Medical Report",
                 "confidence": conf_val,
                 "medical_score": 96,
                 "reason": doc_reason,
@@ -933,6 +954,7 @@ def classify_medical_document(file_path: str, file_type: str) -> dict[str, Any]:
                 "status": "non_medical",
                 "document_type": doc_type,
                 "document_label": doc_label,
+                "document_category": "Non-Medical",
                 "confidence": conf_val,
                 "medical_score": 0,
                 "reason": doc_reason,

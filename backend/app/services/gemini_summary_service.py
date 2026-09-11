@@ -756,21 +756,26 @@ def generate_gemini_report_summary(
     has_abnormal = len(abnormal_params) > 0
 
     # Detect medical domain
-    is_cbc = any(k in raw_lower or k in type_lower for k in ["cbc", "hemoglobin", "platelet", "wbc", "rbc", "hematology", "hemogram"])
-    is_lipid = any(k in raw_lower or k in type_lower for k in ["cholesterol", "triglyceride", "lipid", "hdl", "ldl", "vldl"])
-    is_renal = any(k in raw_lower or k in type_lower for k in ["creatinine", "urea", "kft", "rft", "egfr", "kidney", "renal", "uric acid"])
-    is_liver = any(k in raw_lower or k in type_lower for k in ["sgpt", "sgot", "alt", "ast", "bilirubin", "alkaline", "lft", "hepatic", "liver"])
-    is_diabetes = any(k in raw_lower or k in type_lower for k in ["glucose", "sugar", "hba1c", "glycated", "fasting blood sugar", "ppbs", "diabetes"])
-    is_thyroid = any(k in raw_lower or k in type_lower for k in ["tsh", "t3", "t4", "thyroid"])
-    is_echo = any(k in raw_lower or k in type_lower for k in ["echo", "ejection fraction", "ef", "diastolic", "valve", "ventricle", "cardi"])
-    is_urine = any(k in raw_lower or k in type_lower for k in ["urine", "urinalysis", "pus cells", "epithelial"])
-    is_prescription = any(k in raw_lower or k in type_lower for k in ["prescription", "rx", "tab", "cap", "mg", "syrup", "dosage", "bd", "od", "sos"])
+    is_prescription = "prescription" in type_lower or (
+        any(re.search(r"\b" + re.escape(k) + r"\b", raw_lower) for k in ["prescription", "rx", "tab", "cap", "syrup", "dosage", "bd", "od", "sos", "1-0-1", "0-0-1", "1-0-0"])
+        and not any(re.search(r"\b" + re.escape(k) + r"\b", raw_lower) for k in ["complete blood count", "cbc", "lipid profile", "kft", "rft", "lft", "echocardiography"])
+    )
+    is_cbc = any(k in type_lower for k in ["cbc", "hematology", "hemogram"]) or any(re.search(r"\b" + re.escape(k) + r"\b", raw_lower) for k in ["cbc", "hemoglobin", "haemoglobin", "platelet", "wbc", "rbc", "hematology", "hemogram"])
+    is_lipid = any(k in type_lower for k in ["lipid", "cholesterol"]) or any(re.search(r"\b" + re.escape(k) + r"\b", raw_lower) for k in ["cholesterol", "triglyceride", "lipid", "hdl", "ldl", "vldl"])
+    is_renal = any(k in type_lower for k in ["renal", "kidney", "kft", "rft"]) or any(re.search(r"\b" + re.escape(k) + r"\b", raw_lower) for k in ["creatinine", "urea", "kft", "rft", "egfr", "kidney", "renal", "uric acid"])
+    is_liver = any(k in type_lower for k in ["liver", "lft", "hepatic"]) or any(re.search(r"\b" + re.escape(k) + r"\b", raw_lower) for k in ["sgpt", "sgot", "bilirubin", "alkaline phosphatase", "lft", "hepatic", "liver"])
+    is_diabetes = any(k in type_lower for k in ["diabetes", "glucose", "glycemic"]) or any(re.search(r"\b" + re.escape(k) + r"\b", raw_lower) for k in ["glucose", "sugar", "hba1c", "fasting blood sugar", "ppbs", "diabetes"])
+    is_thyroid = any(k in type_lower for k in ["thyroid", "tft"]) or any(re.search(r"\b" + re.escape(k) + r"\b", raw_lower) for k in ["tsh", "t3", "t4", "thyroid"])
+    is_echo = any(k in type_lower for k in ["echo", "cardiology"]) or any(re.search(r"\b" + re.escape(k) + r"\b", raw_lower) for k in ["echocardiogram", "echocardiography", "2d echo", "ejection fraction", "lvef", "diastolic dysfunction"])
+    is_urine = any(k in type_lower for k in ["urine", "urinalysis"]) or any(re.search(r"\b" + re.escape(k) + r"\b", raw_lower) for k in ["urinalysis", "urine routine", "pus cells"])
 
     # -------------------------------------------------------------
     # SECTION 1: REPORT OVERVIEW
     # -------------------------------------------------------------
     if lang in ["hi", "hindi"]:
-        if is_cbc:
+        if is_prescription:
+            overview_text = "यह एक डॉक्टर की क्लिनिकल पर्ची (Prescription) है, जिसमें प्राथमिक लक्षणों के आधार पर आवश्यक दवाएं, खुराक और जीवनशैली संबंधी परामर्श दर्ज किया गया है।"
+        elif is_cbc:
             overview_text = "यह एक कम्प्लीट ब्लड काउंट (CBC / हेमोप्रोग्राम) रिपोर्ट है, जो लाल रक्त कोशिकाओं, सफेद रक्त कोशिकाओं और प्लेटलेट्स के स्तर की जांच करती है ताकि एनीमिया, संक्रमण और प्रतिरक्षा स्वास्थ्य का मूल्यांकन किया जा सके।"
         elif is_lipid:
             overview_text = "यह एक लिपिड प्रोफाइल (कोलेस्ट्रॉल) जांच रिपोर्ट है, जो रक्त में वसा के विभिन्न रूपों (जैसे टोटल कोलेस्ट्रॉल, एलडीएल, एचडीएल और ट्राइग्लिसराइड्स) को मापकर हृदय व रक्त वाहिकाओं के स्वास्थ्य का आकलन करती है।"
@@ -784,8 +789,6 @@ def generate_gemini_report_summary(
             overview_text = "यह एक थायरॉयड प्रोफाइल रिपोर्ट है, जो TSH, T3 और T4 हार्मोन्स की जांच करके शरीर की चयापचय (Metabolism) दर और अंतःस्रावी संतुलन का मूल्यांकन करती है।"
         elif is_echo:
             overview_text = "यह एक 2D इकोकार्डियोग्राफी (हृदय सोनोग्राफी) रिपोर्ट है, जो हृदय की पंपिंग क्षमता (Ejection Fraction), कक्षों की संरचना और वाल्वों की कार्यप्रणाली का विस्तृत विश्लेषण प्रदान करती है।"
-        elif is_prescription:
-            overview_text = "यह एक डॉक्टर की क्लिनिकल पर्ची (Prescription) है, जिसमें प्राथमिक लक्षणों के आधार पर आवश्यक दवाएं, खुराक और जीवनशैली संबंधी परामर्श दर्ज किया गया है।"
         else:
             overview_text = f"यह {doc_type} की विस्तृत नैदानिक रिपोर्ट है। इसमें आपके स्वास्थ्य मानकों और प्रयोगशाला परीक्षणों का व्यवस्थित मूल्यांकन शामिल है।"
 
@@ -798,7 +801,9 @@ def generate_gemini_report_summary(
         sec5_title = "### 5. डॉक्टर से पूछने योग्य महत्वपूर्ण प्रश्न (Questions to Ask Your Doctor)"
 
     elif lang in ["mr", "marathi"]:
-        if is_cbc:
+        if is_prescription:
+            overview_text = "हे डॉक्टरांचे वैद्यकीय प्रिस्क्रिप्शन आहे, ज्यामध्ये लक्षणांच्या आधारे आवश्यक औषधे, डोस आणि आरोग्याची काळजी घेण्याबाबत मार्गदर्शन नोंदवले आहे."
+        elif is_cbc:
             overview_text = "हा एक कम्प्लीट ब्लड काउंट (CBC) तपासणी अहवाल आहे, जो शरीरातील रक्तपेशी, हिमोग्लोबिन आणि प्लेटलेट्सचे प्रमाण तपासून अशक्तपणा व संसर्गाचे मूल्यांकन करतो."
         elif is_lipid:
             overview_text = "हा एक लिपिड प्रोफाइल अहवाल आहे, जो रक्तातील कोलेस्ट्रॉल आणि चरबीचे प्रमाण तपासून हृदय व रक्तवाहिन्यांच्या आरोग्याची स्थिती दर्शवतो."
@@ -810,8 +815,6 @@ def generate_gemini_report_summary(
             overview_text = "हा रक्तातील साखरेचा (Blood Sugar / HbA1c) अहवाल आहे, जो शरीरातील ग्लुकोजची पातळी आणि मागील ३ महिन्यांतील साखर नियंत्रण तपासतो."
         elif is_echo:
             overview_text = "हा २डी इकोकार्डियोग्राफी (हृदय तपासणी) अहवाल आहे, जो हृदयाची रक्त पंप करण्याची क्षमता (Ejection Fraction) आणि हृदयाच्या झडपांची स्थिती दर्शवतो."
-        elif is_prescription:
-            overview_text = "हे डॉक्टरांचे वैद्यकीय प्रिस्क्रिप्शन आहे, ज्यामध्ये लक्षणांच्या आधारे आवश्यक औषधे, डोस आणि आरोग्याची काळजी घेण्याबाबत मार्गदर्शन नोंदवले आहे."
         else:
             overview_text = f"हा {doc_type} चा सविस्तर वैद्यकीय अहवाल आहे, ज्यामध्ये तपासलेले आरोग्य मापदंड आणि क्लिनिकल निष्कर्षांची माहिती समाविष्ट आहे."
 
@@ -825,7 +828,9 @@ def generate_gemini_report_summary(
 
     else:
         # English
-        if is_cbc:
+        if is_prescription:
+            overview_text = "This is a clinical prescription documenting physician consultation findings, vital measurements, and directed pharmaceutical therapy with administration guidelines."
+        elif is_cbc:
             overview_text = "This is a Complete Blood Count (CBC) laboratory report evaluating red blood cells, white blood cells, hemoglobin, and platelets to assess overall blood health, oxygen capacity, and immune defense."
         elif is_lipid:
             overview_text = "This is a Lipid Profile cardiovascular assessment measuring circulating lipids including Total Cholesterol, HDL ('good') cholesterol, LDL ('bad') cholesterol, and Triglycerides."
@@ -839,8 +844,6 @@ def generate_gemini_report_summary(
             overview_text = "This is a Thyroid Profile measuring Thyroid Stimulating Hormone (TSH) and thyroid hormones to monitor metabolic regulation and endocrine harmony."
         elif is_echo:
             overview_text = "This is a 2D Echocardiography cardiac ultrasound report assessing left ventricular pumping efficiency (Ejection Fraction), wall motion, and heart valve competence."
-        elif is_prescription:
-            overview_text = "This is a clinical prescription documenting physician consultation findings, vital measurements, and directed pharmaceutical therapy with administration guidelines."
         else:
             overview_text = f"This is a {doc_type} providing objective clinical measurements and diagnostic evaluations across your health parameters."
 
@@ -1053,7 +1056,100 @@ def generate_gemini_report_summary(
     detected_medicines = extract_prescription_medicines_summary(raw_text, lang)
     has_medicines = len(detected_medicines) > 0
 
-    if has_medicines:
+    if is_prescription:
+        if lang in ["hi", "hindi"]:
+            rx_sec1_title = "### 1. डॉक्टर पर्ची का सारांश (Prescription Overview)"
+            rx_sec2_title = "### 2. सुझाई गई दवाएं एवं खुराक का विवरण (Prescribed Medications & Dosages)"
+            rx_sec3_title = "### 3. क्लिनिकल निष्कर्ष एवं उपचार परामर्श (Treatment Guidance)"
+            rx_sec4_title = "### 4. अगले कदम एवं अनुवर्ती परामर्श (Next Steps & Follow-up)"
+            rx_sec5_title = "### 5. डॉक्टर से पूछने योग्य महत्वपूर्ण प्रश्न (Questions to Ask Your Doctor)"
+            rx_badge = "* **क्लिनिकल पर्चा (Doctor Prescription)** — डॉक्टर द्वारा सुझाई गई दवाएं और निर्देश।"
+            rx_summary = "* **संक्षेप**: यह डॉक्टर द्वारा जारी अधिकृत क्लिनिकल पर्ची है। सभी दवाएं केवल डॉक्टर के परामर्श के अनुसार लें और निर्धारित समय पर फॉलो-अप जांच कराएं।"
+            rx_steps = [
+                "* **1. दवाओं का समय पर सेवन**: सभी दवाएं बताए गए समय (खाने से पहले या बाद) पर नियमित रूप से लें।",
+                "* **2. खुराक न बदलें**: बिना डॉक्टर की सलाह के किसी भी दवा की खुराक न बदलें और न ही बीच में बंद करें।",
+                "* **3. चेतावनी संकेत**: यदि दवा से कोई एलर्जी, अत्यधिक सुस्ती, उल्टी या असहजता महसूस हो तो तुरंत डॉक्टर से संपर्क करें।",
+                "* **4. फॉलो-अप परामर्श**: डॉक्टर द्वारा बताए गए समय पर पुनः जांच (Revisit) के लिए जाएं।"
+            ]
+            rx_questions = [
+                "1. क्या इन दवाओं को किसी विशेष समय या भोजन के साथ लेना सबसे उपयुक्त रहेगा?",
+                "2. यदि कोई खुराक भूल जाऊं तो मुझे क्या करना चाहिए?",
+                "3. क्या इन दवाओं के साथ कोई अन्य सामान्य दवा (जैसे दर्द निवारक या एंटासिड) ली जा सकती है?",
+                "4. मुझे कितने दिनों बाद पुनः परामर्श या स्वास्थ्य जांच के लिए आना होगा?"
+            ]
+        elif lang in ["mr", "marathi"]:
+            rx_sec1_title = "### 1. प्रिस्क्रिप्शन विहंगावलोकन (Prescription Overview)"
+            rx_sec2_title = "### 2. डॉक्टरांनी दिलेली औषधे आणि डोस (Prescribed Medications & Dosages)"
+            rx_sec3_title = "### 3. उपचार आणि वैद्यकीय मार्गदर्शन (Treatment Guidance)"
+            rx_sec4_title = "### 4. पुढील पायऱ्या आणि काळजी (Next Steps & Follow-up)"
+            rx_sec5_title = "### 5. आपल्या डॉक्टरांना विचारण्यासाठी महत्त्वाचे प्रश्न (Questions to Ask Your Doctor)"
+            rx_badge = "* **वैद्यकीय प्रिस्क्रिप्शन (Doctor Prescription)** — डॉक्टरांनी दिलेली औषधे आणि सूचना."
+            rx_summary = "* **थोडक्यात**: हे डॉक्टरांचे अधिकृत प्रिस्क्रिप्शन आहे. सर्व औषधे डॉक्टरांच्या सल्ल्यानुसार योग्य वेळी घ्या आणि वेळेवर फॉलो-अप करा."
+            rx_steps = [
+                "* **1. औषधे वेळेवर घेणे**: सर्व औषधे सांगितलेल्या वेळेवर आणि जेवणाशी संबंधित सूचनांनुसार नियमित घ्या.",
+                "* **2. डोस न बदलणे**: डॉक्टरांच्या सल्ल्याशिवाय कोणताही डोस बदलू नका किंवा औषध थांबवू नका.",
+                "* **3. खबरदारी**: औषधामुळे काही त्रास किंवा ॲलर्जी जाणवल्यास त्वरित डॉक्टरांशी संपर्क साधा.",
+                "* **4. फॉलो-अप तपासणी**: डॉक्टरांनी दिलेल्या तारखेला पुन्हा तपासणीसाठी नक्की जा."
+            ]
+            rx_questions = [
+                "1. ही औषधे किती दिवस नियमितपणे सुरू ठेवावी लागतील?",
+                "2. औषध घेताना आहाराशी संबंधित कोणती पथ्ये पाळावी लागतील?",
+                "3. काही डोस चुकला तर काय करावे?",
+                "4. पुढील तपासणी कधी करावी लागेल?"
+            ]
+        else:
+            rx_sec1_title = "### 1. Prescription Overview"
+            rx_sec2_title = "### 2. Prescribed Medications & Dosage Instructions"
+            rx_sec3_title = "### 3. Clinical Guidance & Treatment Plan"
+            rx_sec4_title = "### 4. What Should I Do? (Actionable Next Steps)"
+            rx_sec5_title = "### 5. Questions to Ask Your Doctor at Follow-Up"
+            rx_badge = "* **Doctor Prescription** — Directed pharmaceutical therapy and treatment guidelines."
+            rx_summary = "* **Summary**: This prescription outlines the clinician's pharmaceutical plan. Take all medications strictly as directed and attend recommended follow-up visits."
+            rx_steps = [
+                "* **1. Adhere to Medication Schedule**: Take each prescribed medicine at scheduled intervals with designated meal guidelines (before or after food).",
+                "* **2. Complete the Course**: Do not alter dosage, skip doses, or discontinue medications prematurely without consulting your doctor.",
+                "* **3. Monitor for Adverse Effects**: If you notice unexpected rash, dizziness, severe nausea, or allergic symptoms, notify your healthcare provider immediately.",
+                "* **4. Schedule Follow-Up Consultation**: Attend the recommended follow-up clinic visit to assess symptom improvement and treatment efficacy."
+            ]
+            rx_questions = [
+                "1. What is the expected timeframe to notice clinical improvement with these medications?",
+                "2. Are there any specific foods, supplements, or over-the-counter pain relievers I should avoid?",
+                "3. What should I do if I accidentally miss a scheduled dose?",
+                "4. When should we schedule my follow-up review or any repeat laboratory tests?"
+            ]
+
+        if detected_medicines:
+            if lang in ["hi", "hindi"]:
+                med_lines = [
+                    f"* **{m['name']}** [{m['category']}] — **खुराक**: {m['dosage']} | **समय**: {m['frequency']} ({m['timing']})। **उपयोग**: {m['purpose']} **सावधानी**: {m['precautions']}"
+                    for m in detected_medicines
+                ]
+            elif lang in ["mr", "marathi"]:
+                med_lines = [
+                    f"* **{m['name']}** [{m['category']}] — **डोस**: {m['dosage']} | **वेळ**: {m['frequency']} ({m['timing']}). **उपयोग**: {m['purpose']} **काळजी**: {m['precautions']}"
+                    for m in detected_medicines
+                ]
+            else:
+                med_lines = [
+                    f"* **{m['name']}** [{m['category']}] — **Dosage**: {m['dosage']} | **Timing**: {m['frequency']} ({m['timing']}). **Purpose**: {m['purpose']} **Precautions**: {m['precautions']}"
+                    for m in detected_medicines
+                ]
+        else:
+            if lang in ["hi", "hindi"]:
+                med_lines = ["* **सुझाई गई दवाएं**: डॉक्टर द्वारा सुझाई गई दवाएं और खुराक निर्देश पर्ची में दर्ज हैं।"]
+            elif lang in ["mr", "marathi"]:
+                med_lines = ["* **दिलेली औषधे**: डॉक्टरांनी सुचवलेली औषधे आणि डोस सूचना प्रिस्क्रिप्शनमध्ये नोंदवल्या आहेत."]
+            else:
+                med_lines = ["* **Prescribed Medications**: Prescribed medicines and clinical dosage instructions documented on the prescription order."]
+
+        md_sections = [
+            f"{rx_sec1_title}\n{overview_text}\n",
+            f"{rx_sec2_title}\n" + "\n".join(med_lines) + "\n",
+            f"{rx_sec3_title}\n{rx_badge}\n{rx_summary}\n",
+            f"{rx_sec4_title}\n" + "\n".join(rx_steps) + "\n",
+            f"{rx_sec5_title}\n" + "\n".join(rx_questions)
+        ]
+    elif has_medicines:
         if lang in ["hi", "hindi"]:
             sec_med_title = "### 5. दवाओं से संबंधित जानकारी (Medication & Dosage Information)"
             sec_q_title = "### 6. डॉक्टर से पूछने योग्य महत्वपूर्ण प्रश्न (Questions to Ask Your Doctor)"

@@ -10,11 +10,12 @@ import logging
 from pathlib import Path
 import aiofiles
 from typing import Optional
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.database import get_db, Report
 from app.services.document_validation_service import classify_medical_document
+from app.services.ocr_service import process_document
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["upload"])
@@ -48,9 +49,14 @@ def _get_extension(filename: str) -> str:
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
+    language: Optional[str] = Form("en"),
     db: Session = Depends(get_db)
 ):
-    """Securely uploads a prescription or medical report (JPG, PNG, PDF up to 10MB)."""
+    """
+    Securely uploads a prescription or medical report (JPG, PNG, PDF up to 10MB),
+    runs OCR text extraction, identifies whether it is a Doctor Prescription or Medical Report,
+    and generates an immediate, structured patient summary.
+    """
     ext = _get_extension(file.filename or "")
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
@@ -78,34 +84,121 @@ async def upload_document(
 
     # Classify immediately upon upload so the client receives validation in one atomic HTTP response
     validation_result = classify_medical_document(str(dest_path), ext)
+    is_med = validation_result.get("is_medical")
 
-    initial_status = "medical_verified" if validation_result.get("is_medical") is True else (
-        "uncertain_review" if validation_result.get("status") == "uncertain" or validation_result.get("is_medical") is None else "rejected_non_medical"
+    # If identified as non-medical, register and reject early
+    if is_med is False:
+        report = Report(
+            filename=safe_name,
+            original_filename=file.filename or safe_name,
+            ocr_text=validation_result.get("extracted_text"),
+            status="rejected_non_medical"
+        )
+        db.add(report)
+        db.commit()
+        db.refresh(report)
+
+        logger.info("Uploaded document id=%d rejected as non-medical (%s)", report.id, safe_name)
+        return {
+            "success": False,
+            "file_id": report.id,
+            "filename": safe_name,
+            "original_filename": file.filename,
+            "file_path": str(dest_path),
+            "file_type": ext,
+            "size_bytes": len(contents),
+            "is_medical": False,
+            "document_category": "Non-Medical",
+            "document_type": validation_result.get("document_type", "non_medical"),
+            "document_label": validation_result.get("document_label", "Non-Medical Document"),
+            "message": validation_result.get("message", "Uploaded document is not a medical report or doctor prescription."),
+            "validation": validation_result,
+            **validation_result
+        }
+
+    # Document is medical or review needed: run complete OCR entity extraction and clinical summarization
+    doc_res = {}
+    try:
+        doc_res = process_document(
+            str(dest_path),
+            ext,
+            language=language or "en",
+            cached_text=validation_result.get("extracted_text")
+        )
+    except Exception as proc_err:
+        logger.warning("Automated process_document on upload encountered error for %s: %s", safe_name, proc_err)
+        doc_res = {}
+
+    # Determine canonical category: Doctor Prescription vs Medical Report
+    is_rx = (
+        validation_result.get("document_category") == "Doctor Prescription"
+        or doc_res.get("document_category") == "Doctor Prescription"
+        or (doc_res.get("prescription") and len(doc_res.get("prescription", {}).get("medicines", [])) > 0)
+        or "prescription" in str(doc_res.get("document_type", "")).lower()
+        or "prescription" in str(validation_result.get("document_type", "")).lower()
     )
+    doc_category = "Doctor Prescription" if is_rx else "Medical Report"
+
+    raw_text = doc_res.get("raw_text") or validation_result.get("extracted_text")
+    final_status = "analyzed" if doc_res else ("medical_verified" if is_med is True else "uncertain_review")
 
     report = Report(
         filename=safe_name,
         original_filename=file.filename or safe_name,
-        ocr_text=validation_result.get("extracted_text"),
-        status=initial_status
+        ocr_text=raw_text,
+        status=final_status
     )
     db.add(report)
     db.commit()
     db.refresh(report)
 
-    logger.info("Uploaded and validated document id=%d (%s), status=%s", report.id, safe_name, report.status)
+    logger.info("Uploaded and analyzed document id=%d (%s), category=%s, status=%s", report.id, safe_name, doc_category, report.status)
 
-    return {
+    summary_content = doc_res.get("summary") or doc_res.get("report_summary") or doc_res.get("simple_explanation")
+
+    response_payload = {
+        "success": True,
         "file_id": report.id,
         "filename": safe_name,
         "original_filename": file.filename,
         "file_path": str(dest_path),
         "file_type": ext,
         "size_bytes": len(contents),
-        "message": "Document successfully uploaded and validated.",
-        "validation": validation_result,
-        **validation_result
+        "is_medical": is_med if is_med is not None else True,
+        "document_category": doc_category,
+        "document_type": doc_res.get("document_type") or validation_result.get("document_type", doc_category),
+        "document_label": doc_res.get("document_label") or validation_result.get("document_label", doc_category),
+        "raw_text": raw_text,
+        "summary": summary_content,
+        "report_summary": doc_res.get("report_summary") or summary_content,
+        "simple_explanation": doc_res.get("simple_explanation") or summary_content,
+        "parameters": doc_res.get("parameters", []),
+        "prescription": doc_res.get("prescription"),
+        "medical_info": doc_res.get("medical_info", {}),
+        "extracted_table": doc_res.get("extracted_table", []),
+        "patient_information": doc_res.get("patient_information", {}),
+        "overall_status": doc_res.get("overall_status"),
+        "key_findings": doc_res.get("key_findings", []),
+        "measurements": doc_res.get("measurements", []),
+        "findings": doc_res.get("findings", []),
+        "conclusion": doc_res.get("conclusion", ""),
+        "medical_terms_explained": doc_res.get("medical_terms_explained", []),
+        "report_review": doc_res.get("report_review", {}),
+        "check_my_report": doc_res.get("check_my_report"),
+        "emergency_warning": doc_res.get("emergency_warning"),
+        "next_steps": doc_res.get("next_steps"),
+        "confidence_scores": doc_res.get("confidence_scores", {}),
+        "low_confidence_fields": doc_res.get("low_confidence_fields", []),
+        "message": f"Document successfully uploaded and analyzed as {doc_category}.",
+        "validation": {
+            **validation_result,
+            "document_category": doc_category
+        },
+        **doc_res
     }
+    # Ensure canonical category is always preserved even if doc_res contained a sub-category
+    response_payload["document_category"] = doc_category
+    return response_payload
 
 
 @router.post("/validate-document")

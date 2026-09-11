@@ -48,7 +48,7 @@ _allow_origins = [o.strip() for o in _raw_origins.split(",")] if _raw_origins !=
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allow_origins,
-    allow_credentials=True,
+    allow_credentials=False if _raw_origins == "*" else True,
     allow_methods=["*"],
     allow_headers=["*"]
 )
@@ -63,7 +63,7 @@ async def privacy_middleware(request: Request, call_next):
 # Serve static uploads
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
-# Include routers with /api prefix
+# Include routers with /api prefix (primary)
 app.include_router(upload_router, prefix="/api")
 app.include_router(ocr_router, prefix="/api")
 app.include_router(explanation_router, prefix="/api")
@@ -71,6 +71,15 @@ app.include_router(prediction_router, prefix="/api")
 app.include_router(feedback_router, prefix="/api")
 app.include_router(ask_router, prefix="/api")
 app.include_router(voice_assistant_router, prefix="/api")
+
+# Also include routers without /api prefix for Vercel serverless rewrite fallback
+app.include_router(upload_router)
+app.include_router(ocr_router)
+app.include_router(explanation_router)
+app.include_router(prediction_router)
+app.include_router(feedback_router)
+app.include_router(ask_router)
+app.include_router(voice_assistant_router)
 
 @app.on_event("startup")
 def startup_event():
@@ -80,12 +89,14 @@ def startup_event():
 
 @app.get("/")
 @app.get("/api")
+@app.get("/health")
+@app.get("/api/health")
 def root():
     return {
+        "status": "healthy",
         "app": "AarogyaAI API",
-        "status": "online",
+        "online": True,
         "docs": "/docs",
-        "health": "/api/health",
         "disclaimer": "This system provides informational risk indications only and is not a medical diagnosis."
     }
 

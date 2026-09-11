@@ -20,9 +20,12 @@ api.interceptors.response.use(
   }
 );
 
-export const uploadDocument = (file) => {
+export const uploadDocument = (file, language = 'en') => {
   const formData = new FormData();
   formData.append('file', file);
+  if (language) {
+    formData.append('language', language);
+  }
   return api.post('/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
