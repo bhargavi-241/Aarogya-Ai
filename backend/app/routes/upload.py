@@ -198,6 +198,8 @@ async def upload_document(
     }
     # Ensure canonical category is always preserved even if doc_res contained a sub-category
     response_payload["document_category"] = doc_category
+    if not response_payload.get("confidence"):
+        response_payload["confidence"] = validation_result.get("confidence", 0.95)
     return response_payload
 
 

@@ -85,18 +85,20 @@ HOSPITAL_CLINIC_TERMS = [
     r"\bclinical\s+lab(?:oratory)?\b", r"\blaboratory\s+services\b", r"\bmedicare\b",
     r"\bhealth\s+services\b", r"\bmultispeciality\b", r"\bdr\.?\s+[A-Za-z]+",
     r"\bdoctor\b", r"\bphysician\b", r"\bconsultant\b", r"\bpathologist\b",
-    r"\bradiologist\b", r"\bsurgeon\b", r"\bmbbs\b", r"\bmd\b", r"\bms\b", r"\bdnb\b"
+    r"\bradiologist\b", r"\bsurgeon\b", r"\bmbbs\b", r"\bmd\b", r"\bms\b", r"\bdnb\b",
+    r"\bdrlogy\b", r"\bmindray\b", r"\bmedical\s+lab\s*technician\b", r"\bdmlt\b", r"\bbmlt\b"
 ]
 
 PATIENT_METADATA_TERMS = [
-    r"\bpatient\s+name\b", r"\bpatient\s+id\b", r"\buhid\b", r"\bipd\b", r"\bopd\b",
+    r"\bpatient\s+name\b", r"\bpatient\s+id\b", r"\bpid\b", r"\buhid\b", r"\bipd\b", r"\bopd\b",
     r"\bhospital\s+no\b", r"\blab\s+no\b", r"\bsample\s+id\b", r"\breg\.?\s*no\b",
     r"\bregistration\s+no\b", r"\bage\s*[\/:]\s*\d+", r"\bage\s*\/\s*sex\b",
     r"\bage\s*\/\s*gender\b", r"\bsex\s*[\/:]\s*(?:male|female|m|f)\b",
     r"\bgender\s*[\/:]\s*(?:male|female|m|f)\b", r"\breferred\s+by\b", r"\bref\.?\s*by\b",
     r"\bconsulting\s+dr\b", r"\bcollected\s+at\b", r"\breceived\s+at\b",
     r"\breported\s+at\b", r"\bsample\s+date\b", r"\breport\s+date\b",
-    r"\bdate\s+of\s+collection\b", r"\bblood\s+group\b"
+    r"\bdate\s+of\s+collection\b", r"\bblood\s+group\b", r"\bsample\s+collected\s+at\b",
+    r"\bregistered\s+on\b", r"\breported\s+on\b", r"\bprimary\s+sample\s+type\b"
 ]
 
 LAB_REPORT_HEADER_TERMS = [
@@ -107,13 +109,13 @@ LAB_REPORT_HEADER_TERMS = [
     r"\bdepartment\s+of\s+laboratory\b", r"\bclinical\s+laboratory\b", r"\bserology\b",
     r"\bmicrobiology\s+report\b", r"\bhealth\s+check-?up\s+report\b", r"\bdiagnostic\s+centre\b",
     r"\bpathology\s+lab\b", r"\bultrasound\s+&?\s+diagnostic\b", r"\bradiology\s+report\b",
-    r"\bclinical\s+findings\b", r"\bexamination\s+report\b"
+    r"\bclinical\s+findings\b", r"\bexamination\s+report\b", r"\bdrlogy\s+pathology\b"
 ]
 
 TABLE_STRUCTURE_TERMS = [
     r"\btest\s+name\b", r"\binvestigation\b", r"\bresults?\b", r"\bobserved\s+value\b",
     r"\bpatient\s+value\b", r"\bnormal\s+range\b", r"\bnormal\s+ranges\b",
-    r"\breference\s+range\b", r"\breference\s+interval\b", r"\bbiological\s+ref\b",
+    r"\breference\s+range\b", r"\breference\s+interval\b", r"\breference\s+value\b", r"\bbiological\s+ref\b",
     r"\bref\.?\s*interval\b", r"\bunits?\b", r"\bflag\b", r"\bstatus\b", r"\bmethod\b"
 ]
 
@@ -125,7 +127,11 @@ CBC_HEMATOLOGY_TERMS = [
     r"\bbasophils?\b", r"\bpacked\s+cell\s+volume\b", r"\bpcv\b", r"\bhematocrit\b",
     r"\bhct\b", r"\bmcv\b", r"\bmch\b", r"\bmchc\b", r"\brdw\b", r"\brdw-cv\b",
     r"\brdw-sd\b", r"\bplatelet\s+count\b", r"\bplatelets?\b", r"\bmean\s+platelet\s+volume\b",
-    r"\bmpv\b", r"\besr\b", r"\berythrocyte\s+sedimentation\b", r"\bperipheral\s+smear\b"
+    r"\bmpv\b", r"\besr\b", r"\berythrocyte\s+sedimentation\b", r"\bperipheral\s+smear\b",
+    r"\bblood\s+indices\b", r"\bdifferential\s+count\b", r"\babsolute\s+count\b",
+    r"\babsolute\s+neutrophils\b", r"\babsolute\s+lymphocytes\b", r"\babsolute\s+monocytes\b",
+    r"\babsolute\s+eosinophils\b", r"\babsolute\s+basophils\b", r"\btotal\s+rbc\s+count\b",
+    r"\btotal\s+wbc\s+count\b"
 ]
 
 BIOCHEMISTRY_ELECTROLYTES_TERMS = [
@@ -186,7 +192,7 @@ DISCHARGE_CONSULTATION_TERMS = [
 CLINICAL_UNITS = [
     r"\bg\/dl\b", r"\bmg\/dl\b", r"\bmmol\/l\b", r"\bmeq\/l\b", r"\bfl\b",
     r"\bpg\b", r"\bcells?\/cumm\b", r"\bcells?\/mcl\b", r"\bthou\/mm3\b",
-    r"\bmil\/mm3\b", r"\biu\/l\b", r"\bu\/l\b", r"\bng\/ml\b", r"\bpg\/ml\b",
+    r"\bmil\/mm3\b", r"\bmill\/cumm\b", r"\bcumm\b", r"\biu\/l\b", r"\bu\/l\b", r"\bng\/ml\b", r"\bpg\/ml\b",
     r"\bmicromol\/l\b", r"\bmm\/hr\b", r"\b%\b"
 ]
 
@@ -276,6 +282,14 @@ def detect_visual_table_and_layout(image_path: str) -> tuple[bool, bool, dict[st
     metrics: dict[str, Any] = {"aspect_ratio": 1.0, "lines_detected": 0}
 
     if not _CV2_AVAILABLE:
+        if _PIL_AVAILABLE:
+            try:
+                with PILImage.open(image_path) as pimg:
+                    w, h = pimg.size
+                    is_decoded = True
+                    metrics["aspect_ratio"] = round(h / w if w > 0 else 1.0, 2)
+            except Exception:
+                pass
         return has_table, is_decoded, metrics
 
     try:
@@ -440,7 +454,7 @@ def analyze_document_with_gemini_vision(file_path: str, file_type: str) -> Optio
             }
         }
 
-        for model in ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-1.5-flash"]:
+        for model in ["gemini-2.0-flash", "gemini-1.5-flash"]:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
             try:
                 with httpx.Client(timeout=20.0) as client:
@@ -791,8 +805,8 @@ def classify_medical_text(
     # Decision Layer: 3 States (Medical / Uncertain / Non-Medical)
     # -----------------------------------------------------------------------
 
-    # State 3: Clearly Non-Medical (Strong negative evidence required)
-    if total_negative_signals >= 3 and total_medical_score < 20:
+    # State 3: Clearly Non-Medical (Explicit negative evidence required)
+    if (total_negative_signals >= 3 and total_medical_score < 20) or (total_negative_signals >= 1 and total_medical_score == 0 and len(raw_text.split()) >= 15):
         if matched_id:
             neg_type = "non_medical_id"
             neg_reason = "Government Identity Card / Certificate markers detected (Aadhaar, PAN, Voter ID, etc.)"
@@ -806,7 +820,6 @@ def classify_medical_text(
             neg_type = "non_medical_resume"
             neg_reason = "Curriculum Vitae / Resume markers detected"
 
-        doc_category = "Doctor Prescription" if doc_type == "prescription" else "Medical Report"
         return {
             "is_medical": False,
             "status": "non_medical",
@@ -822,9 +835,10 @@ def classify_medical_text(
             "debug": debug_diagnostics
         }
 
-    # State 1: High Confidence Medical Document (Score >= 20 or positive signals)
-    if total_medical_score >= 20:
-        conf_val = round(min(0.78 + (total_medical_score / 350.0), 0.98), 2)
+    # State 1: High/Moderate Confidence Medical Document (Score >= 8 or positive indicators or visual table)
+    if total_medical_score >= 8 or len(all_positive_indicators) >= 1 or (has_visual_table and total_negative_signals == 0):
+        effective_score = max(total_medical_score, 20)
+        conf_val = round(min(0.80 + (effective_score / 350.0), 0.98), 2)
         doc_category = "Doctor Prescription" if doc_type == "prescription" else "Medical Report"
         return {
             "is_medical": True,
@@ -833,65 +847,45 @@ def classify_medical_text(
             "document_label": doc_label,
             "document_category": doc_category,
             "confidence": conf_val,
-            "medical_score": total_medical_score,
+            "medical_score": effective_score,
             "reason": doc_reason,
-            "matched_indicators": all_positive_indicators[:12],
+            "matched_indicators": all_positive_indicators[:12] if all_positive_indicators else ["Structured clinical document layout detected"],
             "negative_indicators": [],
             "message": f"✓ Medical Document Detected ({doc_label}, {int(conf_val * 100)}% confidence). Ready for automated clinical extraction.",
             "debug": debug_diagnostics
         }
 
-    # State 1b: Visual Table Grid Detected with supporting text cues without non-medical markers
-    if has_visual_table and total_negative_signals == 0 and (len(all_positive_indicators) >= 2 or (len(all_positive_indicators) >= 1 and total_medical_score >= 15) or len(norm_text.split()) >= 20):
-        table_score = max(total_medical_score, 30)
-        conf_val = round(min(0.80 + (table_score / 350.0), 0.95), 2)
+    # State 3b: Clear Non-Medical Document with Substantial Text (Essays, Articles, Non-Medical Text)
+    if len(raw_text.split()) >= 30 and total_medical_score == 0 and len(all_positive_indicators) == 0:
         return {
-            "is_medical": True,
-            "status": "medical",
-            "document_type": "medical_report",
-            "document_label": "Medical Report / Structured Test Document",
-            "document_category": "Medical Report",
-            "confidence": conf_val,
-            "medical_score": table_score,
-            "reason": "Structured medical table layout and test grid detected.",
-            "matched_indicators": all_positive_indicators if all_positive_indicators else ["Structured clinical table layout detected"],
-            "negative_indicators": [],
-            "message": f"✓ Medical Document Detected (Medical Report, {int(conf_val * 100)}% confidence). Ready for automated clinical extraction.",
+            "is_medical": False,
+            "status": "non_medical",
+            "document_type": "non_medical",
+            "document_label": "Non-Medical File",
+            "document_category": "Non-Medical",
+            "confidence": 0.90,
+            "medical_score": 0,
+            "reason": "Text extracted contains non-medical content with no clinical parameters or health records.",
+            "matched_indicators": [],
+            "negative_indicators": ["No medical document characteristics detected"],
+            "message": "✕ Not a Medical Document. The text in this file contains no medical test names, prescriptions, or clinical parameters.",
             "debug": debug_diagnostics
         }
 
-    # State 2: Medium Confidence / Uncertain (Never reject as non-medical!)
-    if (total_medical_score >= 6) or (len(raw_text.split()) < 6 and not matched_id and not matched_academic and not matched_financial and not matched_resume and file_size_bytes > 5000 and (total_medical_score > 0 or len(all_positive_indicators) > 0)):
-        effective_score = max(total_medical_score, 15)
-        doc_category = "Doctor Prescription" if (matched_prescription or "rx" in norm_text) else "Medical Report"
-        return {
-            "is_medical": None,
-            "status": "uncertain",
-            "document_type": "uncertain",
-            "document_label": "Document Under Review (Uncertain)",
-            "document_category": doc_category,
-            "confidence": 0.60,
-            "medical_score": effective_score,
-            "reason": "Document could not be classified confidently. OCR clarity is low or layout is ambiguous.",
-            "matched_indicators": all_positive_indicators if all_positive_indicators else ["Document structure detected"],
-            "negative_indicators": ["Low OCR contrast or small font"],
-            "message": "⚠ Document Under Review. OCR text density is low. You can still proceed directly with clinical extraction.",
-            "debug": debug_diagnostics
-        }
-
-    # Fallback State 3: Non-Medical (Complete absence of medical cues + zero text)
+    # State 2: Uncertain / Low text density (Handwritten / Scanned Report / Low OCR / Ambiguous) - NEVER falsely reject!
+    doc_category = "Doctor Prescription" if (matched_prescription or "rx" in norm_text) else "Medical Report"
     return {
-        "is_medical": False,
-        "status": "non_medical",
-        "document_type": "non_medical",
-        "document_label": "Non-Medical File",
-        "document_category": "Non-Medical",
-        "confidence": 0.92,
-        "medical_score": total_medical_score,
-        "reason": "No clinical parameters, reference ranges, or medical structures detected",
-        "matched_indicators": [],
-        "negative_indicators": ["No medical document characteristics detected"],
-        "message": "✕ Not a Medical Document. This file does not appear to be a medical prescription, laboratory report, diagnostic report, or other medical document.",
+        "is_medical": None,
+        "status": "uncertain",
+        "document_type": "uncertain",
+        "document_label": "Document Under Review (Uncertain)",
+        "document_category": doc_category,
+        "confidence": 0.60,
+        "medical_score": max(total_medical_score, 15),
+        "reason": "Document could not be classified confidently due to low OCR text density or layout ambiguity.",
+        "matched_indicators": all_positive_indicators if all_positive_indicators else ["Document structure detected"],
+        "negative_indicators": ["Low OCR contrast or small font"],
+        "message": "⚠ Document Under Review. OCR text density is low. You can still proceed directly with clinical extraction.",
         "debug": debug_diagnostics
     }
 
