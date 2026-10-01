@@ -39,25 +39,27 @@ function renderInlineFormatted(text) {
   while (remaining) {
     const match = remaining.match(tokenRegex);
     if (!match) {
-      parts.push(<span key={keyIdx++}>{remaining}</span>);
+      const cleanRemaining = remaining.replace(/\*+/g, '');
+      parts.push(<span key={keyIdx++}>{cleanRemaining}</span>);
       break;
     }
 
     const matchIndex = match.index;
     if (matchIndex > 0) {
-      parts.push(<span key={keyIdx++}>{remaining.substring(0, matchIndex)}</span>);
+      const cleanPrefix = remaining.substring(0, matchIndex).replace(/\*+/g, '');
+      parts.push(<span key={keyIdx++}>{cleanPrefix}</span>);
     }
 
     const matchText = match[0];
     if (matchText.startsWith('**') && matchText.endsWith('**')) {
-      const boldContent = matchText.slice(2, -2);
+      const boldContent = matchText.slice(2, -2).replace(/\*+/g, '');
       parts.push(
         <strong key={keyIdx++} className="font-bold text-white tracking-wide">
           {boldContent}
         </strong>
       );
     } else if (matchText.startsWith('*') && matchText.endsWith('*')) {
-      const italicContent = matchText.slice(1, -1);
+      const italicContent = matchText.slice(1, -1).replace(/\*+/g, '');
       parts.push(
         <em key={keyIdx++} className="italic text-teal-200">
           {italicContent}
@@ -450,15 +452,32 @@ export default function FormattedExplanation({
     // 1. First priority: parsed medicine lines from summary markdown
     if (parsed.medicines && parsed.medicines.length > 0) {
       return parsed.medicines.map((line) => {
-        const raw = line.replace(/^\*+\s*/, '').trim();
+        // Strip only leading bullet symbols (e.g. "* ", "- ", "• ", "1. ")
+        const raw = line.replace(/^[\*\-\•]\s+/, '').replace(/^\d+\.\s*/, '').trim();
         let name = raw;
         let category = '';
         let details = '';
 
         const nameMatch = raw.match(/^\*\*([^*]+)\*\*/);
+        let remainder = '';
+
         if (nameMatch) {
           name = nameMatch[1];
-          let remainder = raw.substring(nameMatch[0].length).trim();
+          remainder = raw.substring(nameMatch[0].length).trim();
+        } else {
+          // Handle stray closing asterisks like "Medicine Name**: Details"
+          const strayMatch = raw.match(/^([^*]+)\*\*[:\s—\-]*(.*)$/);
+          if (strayMatch) {
+            name = strayMatch[1];
+            remainder = strayMatch[2];
+          } else if (raw.includes(':') || raw.includes('—') || raw.includes(' - ')) {
+            const splitMatch = raw.split(/[:—\-](.+)/);
+            name = splitMatch[0];
+            remainder = splitMatch[1] || '';
+          }
+        }
+
+        if (remainder) {
           const catMatch = remainder.match(/^\[([^\]]+)\]/);
           if (catMatch) {
             category = catMatch[1];
@@ -468,11 +487,15 @@ export default function FormattedExplanation({
           details = remainder;
         }
 
+        // Clean any leftover asterisks and whitespace from name and details
+        name = name.replace(/\*+/g, '').replace(/^[—\-:\s]+|[—\-:\s]+$/g, '').trim();
+        details = details.replace(/^\*+\s*|\s*\*+$/g, '').trim();
+
         return {
-          name,
+          name: name || 'Prescribed Medicine',
           category,
-          details: details || raw,
-          raw
+          details: details || raw.replace(/\*+/g, '').trim(),
+          raw: raw.replace(/\*+/g, '').trim()
         };
       });
     }
@@ -851,7 +874,7 @@ export default function FormattedExplanation({
                           <Pill className="h-4 w-4" />
                         </div>
                         <h5 className="font-bold text-sm sm:text-base text-white">
-                          {med.name}
+                          {med.name.replace(/\*+/g, '').trim()}
                         </h5>
                       </div>
                       {med.category && (

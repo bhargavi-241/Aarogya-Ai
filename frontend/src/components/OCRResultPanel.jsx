@@ -227,7 +227,7 @@ export default function OCRResultPanel({
                       </div>
                       <div>
                         <h5 className="font-extrabold text-slate-900 text-base">
-                          {med.medicine_name}
+                          {typeof med.medicine_name === 'string' ? med.medicine_name.replace(/\*+/g, '').trim() : med.medicine_name}
                         </h5>
                         <span className="text-xs text-teal-700 font-bold">
                           {med.dosage}

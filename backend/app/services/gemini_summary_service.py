@@ -1136,11 +1136,11 @@ def generate_gemini_report_summary(
                 ]
         else:
             if lang in ["hi", "hindi"]:
-                med_lines = ["* **सुझाई गई दवाएं**: डॉक्टर द्वारा सुझाई गई दवाएं और खुराक निर्देश पर्ची में दर्ज हैं।"]
+                med_lines = ["* **सुझाई गई दवाएं** — डॉक्टर द्वारा सुझाई गई दवाएं और खुराक निर्देश पर्ची में दर्ज हैं।"]
             elif lang in ["mr", "marathi"]:
-                med_lines = ["* **दिलेली औषधे**: डॉक्टरांनी सुचवलेली औषधे आणि डोस सूचना प्रिस्क्रिप्शनमध्ये नोंदवल्या आहेत."]
+                med_lines = ["* **दिलेली औषधे** — डॉक्टरांनी सुचवलेली औषधे आणि डोस सूचना प्रिस्क्रिप्शनमध्ये नोंदवल्या आहेत।"]
             else:
-                med_lines = ["* **Prescribed Medications**: Prescribed medicines and clinical dosage instructions documented on the prescription order."]
+                med_lines = ["* **Prescribed Medications** — Prescribed medicines and clinical dosage instructions documented on the prescription order."]
 
         md_sections = [
             f"{rx_sec1_title}\n{overview_text}\n",
