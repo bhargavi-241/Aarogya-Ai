@@ -101,6 +101,10 @@ export const predictKidney = (inputs) => {
   return api.post('/predict/kidney', inputs);
 };
 
+export const predictBloodPressure = (inputs) => {
+  return api.post('/predict/blood-pressure', inputs);
+};
+
 export const getModelMetrics = () => {
   return api.get('/model-metrics');
 };

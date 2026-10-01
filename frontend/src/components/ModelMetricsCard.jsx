@@ -112,6 +112,7 @@ export default function ModelMetricsCard() {
           { id: 'diabetes', label: '🩸 Diabetes Model' },
           { id: 'heart', label: '❤️ Heart Disease Model' },
           { id: 'kidney', label: '🫘 Kidney Disease Model' },
+          { id: 'bp', label: '🩺 Blood Pressure Model' },
         ].map((tab) => (
           <button
             key={tab.id}

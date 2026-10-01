@@ -11,12 +11,16 @@ export default function RiskResultCard({ result, disease }) {
     diabetes: 'Diabetes Mellitus',
     heart: 'Cardiovascular / Heart Disease',
     kidney: 'Chronic Kidney Disease (CKD)',
+    blood_pressure: 'Blood Pressure & Hypertension',
+    bp: 'Blood Pressure & Hypertension',
   };
 
   const diseaseIcons = {
     diabetes: '🩸',
     heart: '❤️',
     kidney: '🫘',
+    blood_pressure: '🩺',
+    bp: '🩺',
   };
 
   const probabilityPct = result.confidence_percent !== null && result.confidence_percent !== undefined
@@ -82,6 +86,45 @@ export default function RiskResultCard({ result, disease }) {
               </p>
             </div>
           </div>
+
+          {/* Blood Pressure Clinical Staging & Hemodynamics */}
+          {result.bp_stage && (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  AHA/ACC Clinical Stage
+                </span>
+                <span
+                  className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${
+                    result.bp_stage.includes('Normal')
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      : result.bp_stage.includes('Elevated')
+                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                      : 'bg-rose-50 text-rose-800 border-rose-200'
+                  }`}
+                >
+                  {result.bp_stage}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                {result.stage_description || result.message}
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200 text-xs">
+                <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                  <span className="text-[10px] text-slate-400 block font-semibold">Mean Arterial Pressure (MAP)</span>
+                  <span className="text-sm font-black text-slate-800 font-mono">
+                    {result.mean_arterial_pressure ? `${result.mean_arterial_pressure} mmHg` : '—'}
+                  </span>
+                </div>
+                <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                  <span className="text-[10px] text-slate-400 block font-semibold">Pulse Pressure</span>
+                  <span className="text-sm font-black text-slate-800 font-mono">
+                    {result.pulse_pressure ? `${result.pulse_pressure} mmHg` : '—'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Visual Probability Meter */}
           {probabilityPct !== null && (

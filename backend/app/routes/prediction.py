@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db, Prediction
 from app.services.prediction_service import (
-    predict_disease_risk, get_disease_metrics, get_model_and_scaler, DISCLAIMER_TEXT
+    predict_disease_risk, predict_bp_risk, get_disease_metrics, get_model_and_scaler, DISCLAIMER_TEXT
 )
 
 logger = logging.getLogger(__name__)
@@ -72,6 +72,20 @@ class KidneyInput(BaseModel):
     pcv: float = Field(42, ge=10, le=60, description="Packed cell volume (%)")
     wc: float = Field(8000, ge=1500, le=30000, description="White blood cell count (cells/cumm)")
     rc: float = Field(5.0, ge=1.5, le=9.0, description="Red blood cell count (millions/cmm)")
+    model_name: Optional[ModelType] = "RandomForest"
+    report_id: Optional[int] = None
+
+
+class BloodPressureInput(BaseModel):
+    systolic: float = Field(120, ge=60, le=260, description="Systolic blood pressure (mm Hg)")
+    diastolic: float = Field(80, ge=40, le=160, description="Diastolic blood pressure (mm Hg)")
+    heart_rate: float = Field(72, ge=30, le=220, description="Resting heart rate / pulse (bpm)")
+    age: float = Field(45, ge=1, le=120, description="Age in years")
+    bmi: float = Field(24.5, ge=10, le=70, description="Body Mass Index (BMI)")
+    salt_intake: Optional[str] = Field("moderate", description="Sodium / Salt intake level (low, moderate, high)")
+    activity_level: Optional[str] = Field("moderate", description="Physical activity level (sedentary, moderate, active)")
+    family_history: Optional[int] = Field(0, ge=0, le=1, description="Family history of hypertension (1: yes, 0: no)")
+    stress_level: Optional[str] = Field("normal", description="Daily stress level (low, normal, high)")
     model_name: Optional[ModelType] = "RandomForest"
     report_id: Optional[int] = None
 
@@ -134,13 +148,28 @@ def predict_kidney(payload: KidneyInput, db: Session = Depends(get_db)):
     return result
 
 
+@router.post("/predict/blood-pressure")
+@router.post("/predict/bp")
+def predict_blood_pressure(payload: BloodPressureInput, db: Session = Depends(get_db)):
+    """Evaluate Blood Pressure & Hypertension potential risk indication and AHA/ACC staging."""
+    data = payload.model_dump()
+    report_id = data.pop("report_id", None)
+    model_choice = data.pop("model_name", "RandomForest")
+
+    result = predict_bp_risk(data, model_name=model_choice)
+    _log_prediction(db, "blood_pressure", data, result, report_id)
+    return result
+
+
 @router.get("/model-metrics")
 def get_all_model_metrics():
     """Retrieve actual evaluation performance metrics (Accuracy, Precision, Recall, F1, AUC, Confusion Matrix) for all models."""
     return {
         "diabetes": get_disease_metrics("diabetes"),
         "heart": get_disease_metrics("heart"),
-        "kidney": get_disease_metrics("kidney")
+        "kidney": get_disease_metrics("kidney"),
+        "bp": get_disease_metrics("bp"),
+        "blood_pressure": get_disease_metrics("blood_pressure")
     }
 
 

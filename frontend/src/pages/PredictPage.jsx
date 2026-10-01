@@ -3,7 +3,7 @@ import {
   Activity, Heart, Droplet, Cpu, Sparkles, AlertCircle,
   HelpCircle, ArrowRight, Loader2, RefreshCw, BarChart2
 } from 'lucide-react';
-import { predictDiabetes, predictHeart, predictKidney } from '../services/api';
+import { predictDiabetes, predictHeart, predictKidney, predictBloodPressure } from '../services/api';
 import DisclaimerBanner from '../components/DisclaimerBanner';
 import RiskResultCard from '../components/RiskResultCard';
 import ModelMetricsCard from '../components/ModelMetricsCard';
@@ -109,6 +109,18 @@ export default function PredictPage() {
     rc: 4.8,
   });
 
+  const [bpForm, setBpForm] = useState({
+    systolic: 130,
+    diastolic: 85,
+    heart_rate: 72,
+    age: 45,
+    bmi: 25.5,
+    salt_intake: 'moderate',
+    activity_level: 'moderate',
+    family_history: 0,
+    stress_level: 'normal',
+  });
+
   const handleDiabetesChange = (e) => {
     const val = parseFloat(e.target.value);
     setDiabetesForm(prev => ({ ...prev, [e.target.name]: isNaN(val) ? 0 : val }));
@@ -122,6 +134,16 @@ export default function PredictPage() {
   const handleKidneyChange = (e) => {
     const val = parseFloat(e.target.value);
     setKidneyForm(prev => ({ ...prev, [e.target.name]: isNaN(val) ? 0 : val }));
+  };
+
+  const handleBpChange = (e) => {
+    const { name, value } = e.target;
+    if (['salt_intake', 'activity_level', 'stress_level'].includes(name)) {
+      setBpForm(prev => ({ ...prev, [name]: value }));
+    } else {
+      const val = parseFloat(value);
+      setBpForm(prev => ({ ...prev, [name]: isNaN(val) ? 0 : val }));
+    }
   };
 
   const handleRunPrediction = async (e) => {
@@ -138,6 +160,8 @@ export default function PredictPage() {
         res = await predictHeart({ ...heartForm, model_name: selectedModel });
       } else if (activeTab === 'kidney') {
         res = await predictKidney({ ...kidneyForm, model_name: selectedModel });
+      } else if (activeTab === 'bp' || activeTab === 'blood_pressure') {
+        res = await predictBloodPressure({ ...bpForm, model_name: selectedModel });
       }
       setPredictionResult(res.data);
     } catch (err) {
@@ -174,6 +198,7 @@ export default function PredictPage() {
             { id: 'diabetes', label: '🩸 Diabetes Module' },
             { id: 'heart', label: '❤️ Heart Disease Module' },
             { id: 'kidney', label: '🫘 Kidney Disease Module' },
+            { id: 'bp', label: '🩺 Blood Pressure Module' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -225,7 +250,7 @@ export default function PredictPage() {
               </p>
             </div>
             <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-lg">
-              {activeTab.toUpperCase()}
+              {activeTab === 'bp' ? 'BLOOD PRESSURE' : activeTab.toUpperCase()}
             </span>
           </div>
 
@@ -529,6 +554,107 @@ export default function PredictPage() {
               </div>
             )}
 
+            {/* BLOOD PRESSURE FORM */}
+            {activeTab === 'bp' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <InputField
+                  label="Systolic BP (SBP)"
+                  name="systolic"
+                  value={bpForm.systolic}
+                  onChange={handleBpChange}
+                  min={70}
+                  max={260}
+                  unit="mmHg"
+                  helper="Normal < 120"
+                />
+                <InputField
+                  label="Diastolic BP (DBP)"
+                  name="diastolic"
+                  value={bpForm.diastolic}
+                  onChange={handleBpChange}
+                  min={40}
+                  max={150}
+                  unit="mmHg"
+                  helper="Normal < 80"
+                />
+                <InputField
+                  label="Resting Heart Rate"
+                  name="heart_rate"
+                  value={bpForm.heart_rate}
+                  onChange={handleBpChange}
+                  min={40}
+                  max={200}
+                  unit="bpm"
+                  helper="Normal 60 - 100"
+                />
+                <InputField
+                  label="Patient Age"
+                  name="age"
+                  value={bpForm.age}
+                  onChange={handleBpChange}
+                  min={18}
+                  max={100}
+                  unit="years"
+                />
+                <InputField
+                  label="Body Mass Index (BMI)"
+                  name="bmi"
+                  value={bpForm.bmi}
+                  onChange={handleBpChange}
+                  min={10}
+                  max={60}
+                  step={0.1}
+                  unit="kg/m²"
+                  helper="Normal: 18.5 - 24.9"
+                />
+                <SelectField
+                  label="Dietary Salt / Sodium Intake"
+                  name="salt_intake"
+                  value={bpForm.salt_intake}
+                  onChange={handleBpChange}
+                  options={[
+                    { value: 'low', label: 'Low (< 1.5g / day)' },
+                    { value: 'moderate', label: 'Moderate (1.5 - 2.3g / day)' },
+                    { value: 'high', label: 'High (> 2.3g / day)' },
+                  ]}
+                />
+                <SelectField
+                  label="Physical Activity Level"
+                  name="activity_level"
+                  value={bpForm.activity_level}
+                  onChange={handleBpChange}
+                  options={[
+                    { value: 'sedentary', label: 'Sedentary (< 30 min/wk)' },
+                    { value: 'moderate', label: 'Moderate (30 - 150 min/wk)' },
+                    { value: 'active', label: 'Active (> 150 min/wk)' },
+                  ]}
+                />
+                <SelectField
+                  label="Daily Stress Level"
+                  name="stress_level"
+                  value={bpForm.stress_level}
+                  onChange={handleBpChange}
+                  options={[
+                    { value: 'low', label: 'Low / Well-managed' },
+                    { value: 'normal', label: 'Normal / Moderate' },
+                    { value: 'high', label: 'High / Chronic Stress' },
+                  ]}
+                />
+                <div className="sm:col-span-2">
+                  <SelectField
+                    label="Family History of Hypertension"
+                    name="family_history"
+                    value={bpForm.family_history}
+                    onChange={handleBpChange}
+                    options={[
+                      { value: 0, label: 'No Known Family History' },
+                      { value: 1, label: 'Yes, Direct Parent or Sibling' },
+                    ]}
+                  />
+                </div>
+              </div>
+            )}
+
             {error && (
               <div className="bg-rose-50 border border-rose-200 text-rose-800 text-xs p-3 rounded-xl">
                 {error}
@@ -549,7 +675,7 @@ export default function PredictPage() {
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    <span>Compute Potential {activeTab.toUpperCase()} Risk Indication</span>
+                    <span>Compute Potential {activeTab === 'bp' ? 'BLOOD PRESSURE' : activeTab.toUpperCase()} Risk Indication</span>
                   </>
                 )}
               </button>
@@ -581,13 +707,15 @@ export default function PredictPage() {
       {predictionResult && (
         <PersonalizedWellnessSuggestions
           mlRisk={{
-            disease: activeTab,
+            disease: activeTab === 'bp' ? 'blood_pressure' : activeTab,
             risk_level: predictionResult.risk_level || (predictionResult.prediction === 1 ? 'High' : 'Low'),
             prediction: predictionResult.prediction,
             probability: predictionResult.probability,
           }}
           bpReading={
-            activeTab === 'heart'
+            activeTab === 'bp'
+              ? `${bpForm.systolic}/${bpForm.diastolic}`
+              : activeTab === 'heart'
               ? `${heartForm.trestbps}/80`
               : activeTab === 'kidney'
               ? `${kidneyForm.bp}/80`
