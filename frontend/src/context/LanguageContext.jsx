@@ -17,8 +17,8 @@ export const translations = {
     nav_history: 'History',
     nav_about: 'About',
     nav_feedback: 'Feedback',
-    nav_brand_title: 'Aarogya',
-    nav_brand_highlight: 'AI',
+    nav_brand_title: 'Arogya',
+    nav_brand_highlight: '-Ai',
     nav_brand_sub: 'AI-Powered Healthcare Assistant',
     nav_safety_badge: 'Informational Risk Indications Only',
     nav_mobile_disclaimer: 'Not a medical diagnosis tool. Consult your doctor for medical decisions.',
@@ -39,7 +39,7 @@ export const translations = {
     // Home Page
     hero_badge: 'AI-Powered Healthcare Assistant',
     hero_title: 'Understand Your Health Information Better',
-    hero_desc: 'AarogyaAI empowers patients to understand complex prescriptions, decode medical lab reports in simple language, and explore machine-learning potential disease-risk indications.',
+    hero_desc: 'Arogya-Ai empowers patients to understand complex prescriptions, decode medical lab reports in simple language, and explore machine-learning potential disease-risk indications.',
     hero_upload_btn: 'Upload Medical Report',
     hero_predict_btn: 'Check Health Risk',
     hero_symptoms_btn: 'Describe Symptoms & Issues',
@@ -85,7 +85,7 @@ export const translations = {
 
     // About Page
     about_badge: 'AI-Powered Healthcare Assistant',
-    about_title: 'About AarogyaAI',
+    about_title: 'About Arogya-Ai',
     about_desc: 'A design-thinking AI + Machine Learning initiative created to bridge the health literacy gap between clinical reports and patients.',
     the_problem_badge: 'The Healthcare Problem',
     the_problem_title: 'Patients Struggle to Understand Medical Documents',
@@ -93,7 +93,7 @@ export const translations = {
     problem_takeaway: 'Health literacy gap leads to lower medication adherence.',
     the_solution_badge: 'The AI Companion Solution',
     the_solution_title: 'Understand, Verify, and Predict',
-    the_solution_desc: 'AarogyaAI integrates image preprocessing, optical character recognition (OCR), a human-in-the-loop verification dashboard, plain-language medical dictionaries, and scikit-learn disease-risk assessment models.',
+    the_solution_desc: 'Arogya-Ai integrates image preprocessing, optical character recognition (OCR), a human-in-the-loop verification dashboard, plain-language medical dictionaries, and scikit-learn disease-risk assessment models.',
     solution_takeaway: 'Core Philosophy: "AI assists the user; the user remains in control."',
     design_thinking_badge: 'Methodology',
     design_thinking_title: 'Design Thinking Framework',
@@ -114,7 +114,7 @@ export const translations = {
     footer_emergency: 'Emergency Helpline: 112 / 911',
     footer_disclaimer_title: 'MANDATORY MEDICAL & ACADEMIC DISCLAIMER',
     footer_disclaimer_desc: 'This web application is an educational, research, and design-thinking prototype. All statistical predictions, OCR extractions, and plain-language summaries are for informational purposes only. The application does not provide medical diagnoses, treatment plans, or emergency care recommendations. Always consult a qualified physician or registered healthcare provider for clinical evaluation.',
-    footer_copyright: 'AarogyaAI. AI-Powered Healthcare Assistant.',
+    footer_copyright: 'Arogya-Ai. AI-Powered Healthcare Assistant.',
     footer_stack: 'Built with React, Vite, Tailwind CSS, FastAPI, and Scikit-Learn.',
 
     // Medical Report Summary Details
@@ -153,9 +153,9 @@ export const translations = {
 
     // Simple Explanation
     simple_exp_title: 'Simple Explanation',
-    simple_exp_powered: 'AarogyaAI Clinical Engine',
+    simple_exp_powered: 'Arogya-Ai Clinical Engine',
     simple_exp_disclaimer: 'This is an AI-assisted explanation of the uploaded report and is not a medical diagnosis.',
-    simple_exp_model: 'Engine: Aarogya Clinical AI',
+    simple_exp_model: 'Engine: Arogya-Ai Clinical AI',
     section_overview: 'Report Overview',
     section_params: 'Parameters Breakdown',
     section_normal_params: 'Normal Parameters',
@@ -220,8 +220,8 @@ export const translations = {
     nav_history: 'इतिहास',
     nav_about: 'हमारे बारे में',
     nav_feedback: 'फीडबैक',
-    nav_brand_title: 'Aarogya',
-    nav_brand_highlight: 'AI',
+    nav_brand_title: 'Arogya',
+    nav_brand_highlight: '-Ai',
     nav_brand_sub: 'AI-संचालित स्वास्थ्य सहायक',
     nav_safety_badge: 'केवल सूचनात्मक जोखिम संकेत',
     nav_mobile_disclaimer: 'यह चिकित्सीय निदान उपकरण नहीं है। चिकित्सा निर्णयों के लिए अपने डॉक्टर से परामर्श लें।',
@@ -242,7 +242,7 @@ export const translations = {
     // Home Page
     hero_badge: 'AI-संचालित स्वास्थ्य सहायक',
     hero_title: 'अपनी स्वास्थ्य जानकारी को बेहतर समझें',
-    hero_desc: 'AarogyaAI मरीजों को जटिल पर्चियों को समझने, सरल भाषा में लैब रिपोर्ट को डिकोड करने और संभावित बीमारी के जोखिम संकेतों का पता लगाने में सक्षम बनाता है।',
+    hero_desc: 'Arogya-Ai मरीजों को जटिल पर्चियों को समझने, सरल भाषा में लैब रिपोर्ट को डिकोड करने और संभावित बीमारी के जोखिम संकेतों का पता लगाने में सक्षम बनाता है।',
     hero_upload_btn: 'मेडिकल रिपोर्ट अपलोड करें',
     hero_predict_btn: 'स्वास्थ्य जोखिम जांचें',
     hero_symptoms_btn: 'लक्षण व समस्याएं बताएं',
@@ -288,7 +288,7 @@ export const translations = {
 
     // About Page
     about_badge: 'AI-संचालित स्वास्थ्य सहायक',
-    about_title: 'AarogyaAI के बारे में',
+    about_title: 'Arogya-Ai के बारे में',
     about_desc: 'क्लीनिकल रिपोर्ट और मरीजों के बीच स्वास्थ्य साक्षरता के अंतर को पाटने के लिए बनाई गई एक डिज़ाइन-थिंकिंग AI + मशीन लर्निंग पहल।',
     the_problem_badge: 'स्वास्थ्य सेवा समस्या',
     the_problem_title: 'मरीजों को मेडिकल दस्तावेज़ समझने में कठिनाई होती है',
@@ -296,7 +296,7 @@ export const translations = {
     problem_takeaway: 'स्वास्थ्य साक्षरता की कमी से दवा अनुपालन में कमी आती है।',
     the_solution_badge: 'AI कम्पैनियन समाधान',
     the_solution_title: 'समझें, सत्यापित करें और अनुमान लगाएं',
-    the_solution_desc: 'AarogyaAI इमेज प्रीप्रोसेसिंग, OCR, मानव-सत्यापन डैशबोर्ड, सरल-भाषा शब्दकोश और scikit-learn बीमारी-जोखिम मॉडल को एकीकृत करता है।',
+    the_solution_desc: 'Arogya-Ai इमेज प्रीप्रोसेसिंग, OCR, मानव-सत्यापन डैशबोर्ड, सरल-भाषा शब्दकोश और scikit-learn बीमारी-जोखिम मॉडल को एकीकृत करता है।',
     solution_takeaway: 'मूल दर्शन: "AI उपयोगकर्ता की सहायता करता है; नियंत्रण उपयोगकर्ता के हाथ में रहता है।"',
     design_thinking_badge: 'पद्धति',
     design_thinking_title: 'डिज़ाइन थिंकिंग ढांचा',
@@ -317,7 +317,7 @@ export const translations = {
     footer_emergency: 'आपातकालीन हेल्पलाइन: 112 / 911',
     footer_disclaimer_title: 'अनिवार्य चिकित्सा और शैक्षणिक अस्वीकरण',
     footer_disclaimer_desc: 'यह वेब एप्लिकेशन एक शैक्षिक, अनुसंधान और डिज़ाइन-थिंकिंग प्रोटोटाइप है। सभी सांख्यिकीय भविष्यवाणियां, OCR निष्कर्षण और सरल भाषा सारांश केवल सूचनात्मक उद्देश्यों के लिए हैं। एप्लिकेशन चिकित्सीय निदान प्रदान नहीं करता है। हमेशा किसी योग्य चिकित्सक से परामर्श लें।',
-    footer_copyright: 'AarogyaAI। AI-संचालित स्वास्थ्य सहायक।',
+    footer_copyright: 'Arogya-Ai। AI-संचालित स्वास्थ्य सहायक।',
     footer_stack: 'React, Vite, Tailwind CSS, FastAPI और Scikit-Learn से निर्मित।',
 
     // Medical Report Summary Details
@@ -356,9 +356,9 @@ export const translations = {
 
     // Simple Explanation
     simple_exp_title: 'सरल स्पष्टीकरण',
-    simple_exp_powered: 'AarogyaAI क्लिनिकल इंजन',
+    simple_exp_powered: 'Arogya-Ai क्लिनिकल इंजन',
     simple_exp_disclaimer: 'यह अपलोड की गई रिपोर्ट का AI-सहायता प्राप्त स्पष्टीकरण है और यह चिकित्सीय निदान नहीं है।',
-    simple_exp_model: 'इंजन: Aarogya क्लिनिकल AI',
+    simple_exp_model: 'इंजन: Arogya क्लिनिकल AI',
     section_overview: 'रिपोर्ट का विवरण (Overview)',
     section_params: 'मापदंडों का विश्लेषण (Parameters)',
     section_normal_params: 'सामान्य मापदंड (Normal)',
@@ -423,8 +423,8 @@ export const translations = {
     nav_history: 'इतिहास',
     nav_about: 'आमच्याबद्दल',
     nav_feedback: 'अभिप्राय (फीडबॅक)',
-    nav_brand_title: 'Aarogya',
-    nav_brand_highlight: 'AI',
+    nav_brand_title: 'Arogya',
+    nav_brand_highlight: '-Ai',
     nav_brand_sub: 'AI-सक्षम आरोग्य सहाय्यक',
     nav_safety_badge: 'केवळ माहितीपर जोखीम निर्देशक',
     nav_mobile_disclaimer: 'हे वैद्यकीय निदान साधन नाही. वैद्यकीय निर्णयांसाठी डॉक्टरांचा सल्ला घ्या.',
@@ -445,7 +445,7 @@ export const translations = {
     // Home Page
     hero_badge: 'AI-सक्षम आरोग्य सहाय्यक',
     hero_title: 'तुमची आरोग्य माहिती अधिक चांगल्या प्रकारे समजून घ्या',
-    hero_desc: 'AarogyaAI रुग्णांना कठीण वैद्यकीय प्रिस्क्रिप्शन समजून घेण्यास, साध्या भाषेत लॅब अहवाल डीकोड करण्यास आणि संभाव्य आजारांच्या जोखमीचे मूल्यांकन करण्यास सक्षम करते.',
+    hero_desc: 'Arogya-Ai रुग्णांना कठीण वैद्यकीय प्रिस्क्रिप्शन समजून घेण्यास, साध्या भाषेत लॅब अहवाल डीकोड करण्यास आणि संभाव्य आजारांच्या जोखमीचे मूल्यांकन करण्यास सक्षम करते.',
     hero_upload_btn: 'वैद्यकीय अहवाल अपलोड करा',
     hero_predict_btn: 'आरोग्य जोखीम तपासा',
     hero_symptoms_btn: 'लक्षणे व समस्या सांगा',
@@ -491,7 +491,7 @@ export const translations = {
 
     // About Page
     about_badge: 'AI-सक्षम आरोग्य सहाय्यक',
-    about_title: 'AarogyaAI बद्दल',
+    about_title: 'Arogya-Ai बद्दल',
     about_desc: 'वैद्यकीय अहवाल आणि रुग्ण यांच्यातील आरोग्य साक्षरतेतील अंतर भरून काढण्यासाठी तयार केलेला एक डिझाइन-थिंकिंग AI + मशीन लर्निंग उपक्रम.',
     the_problem_badge: 'आरोग्य सेवेतील समस्या',
     the_problem_title: 'रुग्णांना वैद्यकीय कागदपत्रे समजणे कठीण जाते',
@@ -499,7 +499,7 @@ export const translations = {
     problem_takeaway: 'आरोग्य साक्षरतेच्या अभावामुळे औषधोपचारात अनियमितता येते.',
     the_solution_badge: 'AI कम्पैनियन उपाय',
     the_solution_title: 'समजून घ्या, पडताळणी करा आणि अंदाज लावा',
-    the_solution_desc: 'AarogyaAI इमेज प्रीप्रोसेसिंग, OCR, ह्युमन-इन-द-लूप पडताळणी डॅशबोर्ड, साध्या भाषेतील वैद्यकीय शब्दकोश आणि scikit-learn रोग-जोखीम मॉडेल्स एकत्रित करते.',
+    the_solution_desc: 'Arogya-Ai इमेज प्रीप्रोसेसिंग, OCR, ह्युमन-इन-द-लूप पडताळणी डॅशबोर्ड, साध्या भाषेतील वैद्यकीय शब्दकोश आणि scikit-learn रोग-जोखीम मॉडेल्स एकत्रित करते.',
     solution_takeaway: 'मूळ तत्त्वज्ञान: "AI वापरकर्त्याला मदत करते; नियंत्रण वापरकर्त्याच्या हाती राहते."',
     design_thinking_badge: 'पद्धती',
     design_thinking_title: 'डिझाइन थिंकिंग फ्रेमवर्क',
@@ -520,7 +520,7 @@ export const translations = {
     footer_emergency: 'आपत्कालीन हेल्पलाइन: 112 / 911',
     footer_disclaimer_title: 'वैद्यकीय आणि शैक्षणिक अस्वीकरण',
     footer_disclaimer_desc: 'हे वेब ॲप्लिकेशन एक शैक्षणिक, संशोधन आणि डिझाइन-थिंकिंग प्रोटोटाइप आहे. सर्व सांख्यिकीय अंदाज, OCR निष्कर्ष आणि साध्या भाषेतील सारांश केवळ माहितीच्या उद्देशाने आहेत. ॲप्लिकेशन वैद्यकीय निदान प्रदान करत नाही. वैद्यकीय तपासणीसाठी नेहमी पात्र डॉक्टरांचा सल्ला घ्या.',
-    footer_copyright: 'AarogyaAI. AI-सक्षम आरोग्य सहाय्यक.',
+    footer_copyright: 'Arogya-Ai. AI-सक्षम आरोग्य सहाय्यक.',
     footer_stack: 'React, Vite, Tailwind CSS, FastAPI आणि Scikit-Learn द्वारे विकसित.',
 
     // Medical Report Summary Details
@@ -559,9 +559,9 @@ export const translations = {
 
     // Simple Explanation
     simple_exp_title: 'सोपे स्पष्टीकरण',
-    simple_exp_powered: 'AarogyaAI क्लिनिकल इंजिन',
+    simple_exp_powered: 'Arogya-Ai क्लिनिकल इंजिन',
     simple_exp_disclaimer: 'हे अपलोड केलेल्या अहवालाचे AI-सहाय्यित स्पष्टीकरण आहे आणि हे वैद्यकीय निदान नाही.',
-    simple_exp_model: 'इंजिन: Aarogya क्लिनिकल AI',
+    simple_exp_model: 'इंजिन: Arogya क्लिनिकल AI',
     section_overview: 'अहवाल विहंगावलोकन (Overview)',
     section_params: 'पॅरामीटर्स तपशील (Parameters)',
     section_normal_params: 'सामान्य पॅरामीटर्स (Normal)',

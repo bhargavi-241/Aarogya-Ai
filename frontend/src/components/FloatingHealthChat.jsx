@@ -12,7 +12,7 @@ export default function FloatingHealthChat() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Hi! I am AarogyaAI. Ask me any question about your health, lab reports, or symptoms.',
+      content: 'Hi! I am Arogya-Ai. Ask me any question about your health, lab reports, or symptoms.',
       suggestions: ['What does high blood pressure mean?', 'Normal hemoglobin range?']
     }
   ]);
@@ -63,7 +63,7 @@ export default function FloatingHealthChat() {
         <button
           onClick={() => setIsOpen(true)}
           className="group flex items-center gap-2.5 bg-gradient-to-tr from-teal-700 via-teal-600 to-teal-500 hover:from-teal-600 hover:to-teal-400 text-white px-4 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all ring-2 ring-white/60 transform hover:-translate-y-0.5"
-          title="Ask AarogyaAI Health Question"
+          title="Ask Arogya-Ai Health Question"
         >
           <Bot className="h-5 w-5" />
           <span className="text-xs font-extrabold tracking-wide pr-1">Ask Health AI</span>
@@ -85,7 +85,7 @@ export default function FloatingHealthChat() {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm font-extrabold tracking-tight">AarogyaAI Assistant</h4>
+                  <h4 className="text-sm font-extrabold tracking-tight">Arogya-Ai Assistant</h4>
                   <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-white/20 text-teal-100">
                     Online
                   </span>

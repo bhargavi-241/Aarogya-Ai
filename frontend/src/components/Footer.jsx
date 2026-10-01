@@ -14,9 +14,9 @@ export default function Footer() {
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-3 text-white font-black text-xl tracking-tight">
               <div className="w-10 h-10 rounded-xl bg-white p-1 shadow-sm flex items-center justify-center">
-                <img src="/logo-icon.png" alt="Aarogya-Ai" className="w-full h-full object-contain" />
+                <img src="/logo-icon.png" alt="Arogya-Ai" className="w-full h-full object-contain" />
               </div>
-              <span>{t('nav_brand_title', 'Aarogya')} <span className="text-teal-400">{t('nav_brand_highlight', 'AI')}</span></span>
+              <span>{t('nav_brand_title', 'Arogya')}<span className="text-teal-400">{t('nav_brand_highlight', '-Ai')}</span></span>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed max-w-md">
               {t('footer_desc', 'An AI-powered healthcare assistant designed to help patients understand complex medical prescriptions, lab reports, and health parameters in simple, compassionate language.')}
@@ -72,7 +72,7 @@ export default function Footer() {
 
 
         <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4 text-center">
-          <p>© {new Date().getFullYear()} {t('footer_copyright', 'AarogyaAI. AI-Powered Healthcare Assistant.')}</p>
+          <p>© {new Date().getFullYear()} {t('footer_copyright', 'Arogya-Ai. AI-Powered Healthcare Assistant.')}</p>
           <p className="text-[11px] text-slate-500">Universal Medical Document Understanding & Risk Indication</p>
         </div>
       </div>

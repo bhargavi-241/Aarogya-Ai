@@ -707,7 +707,7 @@ export default function ReportComparisonModal({ isOpen, onClose, initialCurrentT
         {/* Footer */}
         <div className="flex justify-between items-center pt-3 border-t border-slate-100">
           <span className="text-[11px] text-slate-400">
-            AarogyaAI • Multi-Date Report Analyzer & Progression Tracker
+            Arogya-Ai • Multi-Date Report Analyzer & Progression Tracker
           </span>
           <button
             onClick={onClose}

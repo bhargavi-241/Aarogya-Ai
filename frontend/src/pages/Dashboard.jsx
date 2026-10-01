@@ -90,7 +90,7 @@ export default function Dashboard() {
             <Sparkles className="h-3.5 w-3.5" /> Central Clinical Dashboard
           </div>
           <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-            AarogyaAI Control Hub
+            Arogya-Ai Control Hub
           </h1>
           <p className="text-sm text-teal-100/90 leading-relaxed font-normal">
             Welcome! Select any module below to upload clinical documents, speak symptoms in your own words, compare reports across dates, or compute machine learning disease risk indications.

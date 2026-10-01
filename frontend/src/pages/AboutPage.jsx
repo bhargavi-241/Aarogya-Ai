@@ -23,7 +23,7 @@ export default function AboutPage() {
           <span>{t('about_badge', 'AI-Powered Healthcare Assistant')}</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          {t('about_title', 'About AarogyaAI')}
+          {t('about_title', 'About Arogya-Ai')}
         </h1>
         <p className="text-sm sm:text-base text-slate-600 mt-1 max-w-3xl leading-relaxed">
           {t('about_desc', 'A design-thinking AI + Machine Learning initiative created to bridge the health literacy gap between clinical reports and patients.')}
@@ -35,7 +35,7 @@ export default function AboutPage() {
         <div className="w-48 h-48 sm:w-56 sm:h-56 bg-white rounded-3xl p-4 shadow-2xl flex items-center justify-center shrink-0 border border-teal-100">
           <img
             src="/logo.png"
-            alt="Aarogya-Ai Official Logo"
+            alt="Arogya-Ai Official Logo"
             className="w-full h-full object-contain"
           />
         </div>
@@ -45,13 +45,13 @@ export default function AboutPage() {
             <span>OFFICIAL BRAND IDENTITY</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Aarogya-Ai
+            Arogya-Ai
           </h2>
           <p className="text-teal-200 font-semibold text-sm">
             AI-Powered Healthcare Assistant &bull; Understand | Prevent | Live Better
           </p>
           <p className="text-sm text-slate-300 leading-relaxed max-w-2xl font-normal">
-            Aarogya-Ai was created to empower patients and families with transparent, accessible, and safe clinical intelligence. Our brand stands for empathy, scientific precision, and user autonomy.
+            Arogya-Ai was created to empower patients and families with transparent, accessible, and safe clinical intelligence. Our brand stands for empathy, scientific precision, and user autonomy.
           </p>
           <div className="pt-2 flex flex-wrap gap-2 justify-center md:justify-start text-xs font-semibold text-teal-200">
             <span className="bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-xl">📄 Understand Reports</span>
@@ -93,7 +93,7 @@ export default function AboutPage() {
             {t('the_solution_title', 'Understand, Verify, and Predict')}
           </h3>
           <p className="text-sm text-slate-700 leading-relaxed">
-            {t('the_solution_desc', 'AarogyaAI integrates image preprocessing, optical character recognition (OCR), a human-in-the-loop verification dashboard, plain-language medical dictionaries, and scikit-learn disease-risk assessment models.')}
+            {t('the_solution_desc', 'Arogya-Ai integrates image preprocessing, optical character recognition (OCR), a human-in-the-loop verification dashboard, plain-language medical dictionaries, and scikit-learn disease-risk assessment models.')}
           </p>
           <div className="mt-4 pt-3 border-t border-teal-200/60 flex items-center gap-2 text-xs font-semibold text-teal-800">
             <ShieldCheck className="h-4 w-4 text-teal-600" />
@@ -134,7 +134,7 @@ export default function AboutPage() {
               stage: '3. Ideate',
               icon: Lightbulb,
               title: 'Concept Selection',
-              desc: 'Brainstormed 9 concepts. Selected AarogyaAI for high user value, technical feasibility, and responsible AI safety bounds.',
+              desc: 'Brainstormed 9 concepts. Selected Arogya-Ai for high user value, technical feasibility, and responsible AI safety bounds.',
             },
             {
               stage: '4. Prototype',

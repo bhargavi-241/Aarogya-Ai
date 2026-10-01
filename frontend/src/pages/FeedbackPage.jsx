@@ -196,7 +196,7 @@ export default function FeedbackPage() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-            {t('feedback_page_title', 'Help Improve AarogyaAI')}
+            {t('feedback_page_title', 'Help Improve Arogya-Ai')}
           </h1>
 
           <p className="text-sm sm:text-base text-teal-100/80 leading-relaxed">

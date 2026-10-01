@@ -829,10 +829,10 @@ export default function VoiceAssistantPage() {
       <div className="max-w-2xl mx-auto text-center text-xs text-slate-400 font-medium">
         <p>
           {language === 'hi'
-            ? 'AarogyaAI आवाज सहायक केवल स्वास्थ्य जागरूकता के लिए है। किसी भी चिकित्सीय निर्णय के लिए हमेशा डॉक्टर से मिलें।'
+            ? 'Arogya-Ai आवाज सहायक केवल स्वास्थ्य जागरूकता के लिए है। किसी भी चिकित्सीय निर्णय के लिए हमेशा डॉक्टर से मिलें।'
             : language === 'mr'
-            ? 'AarogyaAI आवाज सहाय्यक केवळ आरोग्य जनजागृतीसाठी आहे. वैद्यकीय निर्णयांसाठी डॉक्टरांचा सल्ला घ्या.'
-            : 'AarogyaAI Voice Health Assistant provides educational risk guidance only and never replaces clinical evaluation by a medical doctor.'}
+            ? 'Arogya-Ai आवाज सहाय्यक केवळ आरोग्य जनजागृतीसाठी आहे. वैद्यकीय निर्णयांसाठी डॉक्टरांचा सल्ला घ्या.'
+            : 'Arogya-Ai Voice Health Assistant provides educational risk guidance only and never replaces clinical evaluation by a medical doctor.'}
         </p>
       </div>
     </div>

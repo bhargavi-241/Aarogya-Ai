@@ -274,5 +274,5 @@ def generate_patient_voice_guide(
     # 100% Local Clinical Voice Guidance Execution
     fallback_data = _build_spoken_voice_fallback(clean_text, lang)
     fallback_data["source"] = "clinical_engine"
-    fallback_data["model"] = "Aarogya Clinical Voice Engine"
+    fallback_data["model"] = "Arogya-Ai Clinical Voice Engine"
     return fallback_data

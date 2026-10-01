@@ -1283,7 +1283,7 @@ def generate_ai_symptom_analysis(
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
     if api_key and not api_key.startswith("your_"):
         prompt = (
-            f"You are AarogyaAI Clinical Intelligence Assistant. A patient reports the following symptoms: '{raw_input}'.\n"
+            f"You are Arogya-Ai Clinical Intelligence Assistant. A patient reports the following symptoms: '{raw_input}'.\n"
             f"Provide a clear, reassuring clinical breakdown in {detected_lang} language.\n"
             f"Structure your answer with:\n"
             f"1. What might be happening\n"
@@ -1303,7 +1303,7 @@ def generate_ai_symptom_analysis(
         "success": True,
         "is_ai_generated": True,
         "source": "gemini_ai" if is_gemini else "clinical_engine",
-        "model": "Google Gemini AI" if is_gemini else "Aarogya Clinical AI",
+        "model": "Google Gemini AI" if is_gemini else "Arogya-Ai Clinical AI",
         "language": detected_lang,
         "direct_guidance": final_guidance,
         "direct_answer": fallback_data.get("direct_answer", ""),
@@ -1898,7 +1898,7 @@ def ask_health_assistant(
         return {
             "answer": "Please ask a health question to receive guidance.",
             "source": "clinical_engine",
-            "model": "Aarogya Clinical AI",
+            "model": "Arogya-Ai Clinical AI",
             "suggestions": ["What do normal blood sugar levels look like?", "What does high blood pressure mean?"]
         }
 
@@ -1907,7 +1907,7 @@ def ask_health_assistant(
     if api_key and not api_key.startswith("your_"):
         context_block = f"\nReport Context: {report_context[:3000]}" if report_context else ""
         prompt = (
-            f"You are AarogyaAI Health Assistant. A patient asks: '{clean_q}'.{context_block}\n"
+            f"You are Arogya-Ai Health Assistant. A patient asks: '{clean_q}'.{context_block}\n"
             f"Answer in clear, empathetic {lang} language. Provide practical health insights, "
             f"what they should know, and helpful next steps."
         )
@@ -1924,7 +1924,7 @@ def ask_health_assistant(
     # Generate rich answer using local clinical knowledge base
     fallback_result = _generate_clinical_fallback_answer(clean_q, report_context, lang)
     fallback_result["source"] = "clinical_engine"
-    fallback_result["model"] = "Aarogya Clinical AI"
+    fallback_result["model"] = "Arogya-Ai Clinical AI"
     return fallback_result
 
 

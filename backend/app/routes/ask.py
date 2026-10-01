@@ -59,7 +59,7 @@ def handle_ask_question(payload: AskRequest) -> dict[str, Any]:
             "question": clean_q,
             "answer": result.get("answer", ""),
             "source": result.get("source", "clinical_engine"),
-            "model": result.get("model", "Aarogya Clinical AI"),
+            "model": result.get("model", "Arogya-Ai Clinical AI"),
             "suggestions": result.get("suggestions", []),
             "language": payload.language or "en"
         }

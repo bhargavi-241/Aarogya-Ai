@@ -83,7 +83,7 @@ export default function ABTestingDemo() {
         >
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-teal-700 uppercase">Version B (AarogyaAI)</span>
+              <span className="text-xs font-bold text-teal-700 uppercase">Version B (Arogya-Ai)</span>
               {selectedVersion === 'B' && <CheckCircle2 className="h-4 w-4 text-teal-600" />}
             </div>
             <div className="p-4 bg-teal-50 rounded-xl text-sm text-teal-950 border border-teal-200 mb-3 leading-relaxed">

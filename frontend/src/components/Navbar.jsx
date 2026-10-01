@@ -33,7 +33,7 @@ export default function Navbar() {
               <div className="w-10 h-10 rounded-2xl bg-white shadow-soft-xs ring-1 ring-slate-200/80 p-1 flex items-center justify-center group-hover:ring-teal-400 group-hover:shadow-teal-glow transition-all">
                 <img
                   src="/logo-icon.png"
-                  alt="Aarogya-Ai"
+                  alt="Arogya-Ai"
                   className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                 />
               </div>
@@ -45,8 +45,7 @@ export default function Navbar() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-black text-xl text-slate-900 tracking-tight">
-                  {t('nav_brand_title', 'Aarogya')}{' '}
-                  <span className="text-teal-600 font-black">{t('nav_brand_highlight', 'AI')}</span>
+                  {t('nav_brand_title', 'Arogya')}<span className="text-teal-600 font-black">{t('nav_brand_highlight', '-Ai')}</span>
                 </span>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-teal-50 text-teal-700 border border-teal-200 tracking-wider">
                   CLINICAL AI

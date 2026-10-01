@@ -36,7 +36,7 @@ else:
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
-    title="AarogyaAI API",
+    title="Arogya-Ai API",
     description="AI-Powered Healthcare Assistant for Medical Document Understanding and Health Risk Indication.",
     version="1.0.0"
 )
@@ -92,7 +92,7 @@ def startup_event():
 def root():
     return {
         "status": "healthy",
-        "app": "AarogyaAI API",
+        "app": "Arogya-Ai API",
         "online": True,
         "docs": "/docs",
         "disclaimer": "This system provides informational risk indications only and is not a medical diagnosis."

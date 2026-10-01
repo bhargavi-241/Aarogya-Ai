@@ -69,10 +69,10 @@ export default function AskHealthPage() {
       role: 'assistant',
       content:
         language === 'hi'
-          ? 'नमस्ते! मैं AarogyaAI स्वास्थ्य सहायक हूँ। आप मुझसे किसी भी स्वास्थ्य विषय, दवा, मेडिकल रिपोर्ट, लैब टेस्ट, लक्षण या आहार संबंधी सवाल पूछ सकते हैं।'
+          ? 'नमस्ते! मैं Arogya-Ai स्वास्थ्य सहायक हूँ। आप मुझसे किसी भी स्वास्थ्य विषय, दवा, मेडिकल रिपोर्ट, लैब टेस्ट, लक्षण या आहार संबंधी सवाल पूछ सकते हैं।'
           : language === 'mr'
-          ? 'नमस्कार! मी AarogyaAI आरोग्य सहाय्यक आहे. आपण मला कोणत्याही आरोग्याविषयी, औषधांविषयी, लॅब रिपोर्टविषयी किंवा लक्षणांविषयी प्रश्न विचारू शकता.'
-          : 'Hello! I am your AarogyaAI Health Assistant. Ask me any question about your medical reports, lab parameters, medications, symptoms, diet, or overall wellness.',
+          ? 'नमस्कार! मी Arogya-Ai आरोग्य सहाय्यक आहे. आपण मला कोणत्याही आरोग्याविषयी, औषधांविषयी, लॅब रिपोर्टविषयी किंवा लक्षणांविषयी प्रश्न विचारू शकता.'
+          : 'Hello! I am your Arogya-Ai Health Assistant. Ask me any question about your medical reports, lab parameters, medications, symptoms, diet, or overall wellness.',
       suggestions: [
         'What does high fasting blood sugar mean?',
         'What are normal blood pressure ranges?',
@@ -184,7 +184,7 @@ export default function AskHealthPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                  Ask AarogyaAI Health Assistant
+                  Ask Arogya-Ai Health Assistant
                 </h1>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
                   AI Powered
@@ -271,7 +271,7 @@ export default function AskHealthPage() {
                   <div className={`max-w-[85%] sm:max-w-[78%] space-y-2`}>
                     <div className="flex items-center gap-2 px-1">
                       <span className="text-[11px] font-bold text-slate-600">
-                        {isUser ? 'You' : 'AarogyaAI Assistant'}
+                        {isUser ? 'You' : 'Arogya-Ai Assistant'}
                       </span>
                       {msg.model && (
                         <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-slate-100 text-slate-500 border border-slate-200">
@@ -394,7 +394,7 @@ export default function AskHealthPage() {
               </button>
             </form>
             <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2 px-1">
-              <span>Responses are powered by AarogyaAI clinical intelligence and medical knowledge.</span>
+              <span>Responses are powered by Arogya-Ai clinical intelligence and medical knowledge.</span>
               <span>Available in English, हिन्दी, मराठी</span>
             </div>
           </div>

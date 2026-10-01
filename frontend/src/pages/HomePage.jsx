@@ -31,9 +31,9 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2.5 bg-teal-500/15 border border-teal-400/30 rounded-full px-4 py-1.5 text-xs font-bold text-teal-200 shadow-soft-xs backdrop-blur-md">
                 <div className="w-5 h-5 rounded-md bg-white p-0.5 flex items-center justify-center shadow-xs">
-                  <img src="/logo-icon.png" alt="Aarogya-Ai" className="w-full h-full object-contain" />
+                  <img src="/logo-icon.png" alt="Arogya-Ai" className="w-full h-full object-contain" />
                 </div>
-                <span>{t('hero_badge', 'Aarogya-Ai • AI-Powered Healthcare Assistant')}</span>
+                <span>{t('hero_badge', 'Arogya-Ai • AI-Powered Healthcare Assistant')}</span>
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping ml-1" />
               </div>
 
@@ -54,7 +54,7 @@ export default function HomePage() {
               </h1>
 
               <p className="text-base sm:text-lg text-teal-100/90 leading-relaxed font-normal max-w-2xl">
-                {t('hero_desc', 'AarogyaAI empowers patients to understand complex prescriptions, decode medical lab reports in simple language, explore potential disease risks, and evaluate health symptoms with guided clinical insights.')}
+                {t('hero_desc', 'Arogya-Ai empowers patients to understand complex prescriptions, decode medical lab reports in simple language, explore potential disease risks, and evaluate health symptoms with guided clinical insights.')}
               </p>
 
               {/* Hero Action CTAs */}
@@ -119,10 +119,10 @@ export default function HomePage() {
                 <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shadow-xs">
-                      <img src="/logo-icon.png" alt="Aarogya-Ai" className="w-full h-full object-contain" />
+                      <img src="/logo-icon.png" alt="Arogya-Ai" className="w-full h-full object-contain" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">Aarogya-Ai Clinical Engine</h4>
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">Arogya-Ai Clinical Engine</h4>
                       <p className="text-[10px] text-teal-300 font-semibold">Your Health • Our Intelligence</p>
                     </div>
                   </div>

@@ -574,7 +574,7 @@ export default function FormattedExplanation({
               </h3>
               <span className="inline-flex items-center gap-1.5 bg-teal-500/20 border border-teal-400/40 text-teal-200 text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-2xs">
                 <Sparkles className="h-3 w-3 text-teal-300 animate-spin" style={{ animationDuration: '4s' }} />
-                <span>{t('simple_exp_powered', 'AarogyaAI Clinical Engine')}</span>
+                <span>{t('simple_exp_powered', 'Arogya-Ai Clinical Engine')}</span>
               </span>
             </div>
             <p className="text-xs text-teal-200/80 mt-0.5 font-medium">
@@ -1020,7 +1020,7 @@ export default function FormattedExplanation({
               <span>{t('simple_exp_disclaimer', 'This is an AI-assisted explanation of the uploaded report and is not a medical diagnosis.')}</span>
             </span>
             <span className="font-semibold text-teal-300 bg-slate-800/60 px-2.5 py-1 rounded-lg border border-teal-700/30">
-              {t('simple_exp_model', 'Engine: Aarogya Clinical AI')}
+              {t('simple_exp_model', 'Engine: Arogya-Ai Clinical AI')}
             </span>
           </div>
         </div>

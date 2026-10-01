@@ -1901,7 +1901,7 @@ def analyze_medical_document_content(raw_text: str, filename: str = "", ocr_conf
         "simple_explanation": simple_explanation,
         "summary": simple_explanation,
         "is_gemini_summary": is_gemini_summary,
-        "ai_provider": "Aarogya Clinical AI Engine" if is_gemini_summary else "Clinical Rule Engine",
+        "ai_provider": "Arogya-Ai Clinical AI Engine" if is_gemini_summary else "Clinical Rule Engine",
         "overall_status": overall_status,
         "key_findings": key_findings[:12],
         "measurements": measurements,

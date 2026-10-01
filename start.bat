@@ -1,7 +1,7 @@
 @echo off
-title Aarogya-Ai Launcher
+title Arogya-Ai Launcher
 echo ========================================================
-echo               AAROGYA-AI - STARTUP SCRIPT
+echo                AROGYA-AI - STARTUP SCRIPT
 echo ========================================================
 echo.
 
@@ -35,14 +35,14 @@ echo [3/3] Launching FastAPI Backend and Vite Frontend...
 echo.
 echo Starting Backend Server on http://127.0.0.1:8000 ...
 cd /d "%PROJ_ROOT%\backend"
-start "AarogyaAI Backend" cmd /k "set PYTHONUTF8=1&& call \"%VENV_ACTIVATE%\"&& python -m uvicorn app.main:app --reload --port 8000 --host 0.0.0.0"
+start "Arogya-Ai Backend" cmd /k "set PYTHONUTF8=1&& call \"%VENV_ACTIVATE%\"&& python -m uvicorn app.main:app --reload --port 8000 --host 0.0.0.0"
 
 rem Wait 2 seconds safely without redirection errors
 ping 127.0.0.1 -n 3 >nul
 
 echo Starting Frontend Server on http://localhost:5173 ...
 cd /d "%PROJ_ROOT%\frontend"
-start "AarogyaAI Frontend" cmd /k "npm run dev -- --host 0.0.0.0"
+start "Arogya-Ai Frontend" cmd /k "npm run dev -- --host 0.0.0.0"
 cd /d "%PROJ_ROOT%"
 
 echo.

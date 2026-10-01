@@ -143,7 +143,7 @@ ${guidanceText}
 Reason Behind It: ${analysisResult.reason_behind_it || 'Refer to clinical evaluation.'}
 Recommended Lab Tests: ${(analysisResult.recommended_tests || []).join(', ')}
 
-(Generated via AarogyaAI Diagnostic Reasoning Assistant)`;
+(Generated via Arogya-Ai Diagnostic Reasoning Assistant)`;
     navigator.clipboard.writeText(notes);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -269,7 +269,7 @@ Recommended Lab Tests: ${(analysisResult.recommended_tests || []).join(', ')}
                   <span className="text-[10px] uppercase font-black text-slate-950 bg-gradient-to-r from-teal-400 to-emerald-400 px-3 py-0.5 rounded-full flex items-center gap-1">
                     <Sparkles className="h-3 w-3" />
                     <span>
-                      'Aarogya Clinical AI Engine'
+                      'Arogya Clinical AI Engine'
                     </span>
                   </span>
                   <span className="text-xs text-teal-300 font-bold">
