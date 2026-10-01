@@ -115,6 +115,18 @@ def run_document_ocr(payload: OCRRequest, db: Session = Depends(get_db)):
     )
     doc_category = "Doctor Prescription" if is_rx else "Medical Report"
 
+    # Pre-generate personalized wellness suggestions
+    wellness_res = {}
+    try:
+        from app.services.wellness_suggestion_service import generate_wellness_suggestions
+        wellness_res = generate_wellness_suggestions(
+            report_data=result,
+            language=payload.language or "en"
+        )
+    except Exception as w_err:
+        logger.warning("Could not generate wellness suggestions in OCR: %s", w_err)
+        wellness_res = {}
+
     return {
         "success": True,
         "file_id": payload.file_id,
@@ -148,6 +160,8 @@ def run_document_ocr(payload: OCRRequest, db: Session = Depends(get_db)):
         "emergency_warning": result.get("emergency_warning"),
         "next_steps": result.get("next_steps"),
         "statistics": result.get("statistics"),
+        "wellness_suggestions": wellness_res.get("wellness_suggestions", []),
+        "wellness_data": wellness_res,
         "error": result.get("error")
     }
 
@@ -224,6 +238,20 @@ def compare_medical_reports(payload: CompareReportsRequest, db: Session = Depend
         report_a_date=payload.label_a or "Previous Report",
         report_b_date=payload.label_b or "Current Report"
     )
+
+    # Attach longitudinal wellness suggestions based on report comparison deltas
+    try:
+        from app.services.wellness_suggestion_service import generate_wellness_suggestions
+        comp_deltas = result.get("parameters_comparison") or result.get("comparison_table") or []
+        comp_wellness = generate_wellness_suggestions(
+            comparison_delta=comp_deltas,
+            language="en"
+        )
+        result["wellness_suggestions"] = comp_wellness.get("wellness_suggestions", [])
+        result["wellness_data"] = comp_wellness
+    except Exception as cw_err:
+        logger.warning("Could not generate comparison wellness suggestions: %s", cw_err)
+        result["wellness_suggestions"] = []
 
     return result
 

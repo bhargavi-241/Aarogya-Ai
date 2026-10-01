@@ -196,10 +196,23 @@ async def upload_document(
         },
         **doc_res
     }
-    # Ensure canonical category is always preserved even if doc_res contained a sub-category
     response_payload["document_category"] = doc_category
     if not response_payload.get("confidence"):
         response_payload["confidence"] = validation_result.get("confidence", 0.95)
+
+    # Pre-generate personalized wellness suggestions based on extracted findings
+    try:
+        from app.services.wellness_suggestion_service import generate_wellness_suggestions
+        wellness_data = generate_wellness_suggestions(
+            report_data=doc_res,
+            language=language or "en"
+        )
+        response_payload["wellness_suggestions"] = wellness_data.get("wellness_suggestions", [])
+        response_payload["wellness_data"] = wellness_data
+    except Exception as w_err:
+        logger.warning("Could not generate wellness suggestions on upload: %s", w_err)
+        response_payload["wellness_suggestions"] = []
+
     return response_payload
 
 

@@ -6,6 +6,7 @@ import {
   Upload, Ban, Check, FileCheck, RefreshCcw
 } from 'lucide-react';
 import { compareReports, uploadDocument, validateDocument, performOCR } from '../services/api';
+import PersonalizedWellnessSuggestions from './PersonalizedWellnessSuggestions';
 
 const SAMPLE_PRESETS = [
   {
@@ -701,6 +702,15 @@ export default function ReportComparisonModal({ isOpen, onClose, initialCurrentT
                 </p>
               </div>
             </div>
+
+            {/* Longitudinal Wellness Suggestions based on comparison progression */}
+            {(result.wellness_suggestions?.length > 0 || result.wellness_data) && (
+              <PersonalizedWellnessSuggestions
+                initialSuggestions={result.wellness_suggestions}
+                initialWellnessData={result.wellness_data}
+                comparisonDelta={result.parameters_comparison || result.comparison_table}
+              />
+            )}
           </div>
         )}
 

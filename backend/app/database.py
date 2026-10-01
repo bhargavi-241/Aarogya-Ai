@@ -92,6 +92,17 @@ class Feedback(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class WellnessFeedback(Base):
+    __tablename__ = "wellness_feedbacks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    report_id = Column(Integer, ForeignKey("reports.id"), nullable=True)
+    suggestion_id = Column(String(100), nullable=False)
+    category = Column(String(100), nullable=False)
+    is_useful = Column(Integer, nullable=False)  # 1 for useful, 0 for not useful
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

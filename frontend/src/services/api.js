@@ -149,4 +149,44 @@ export const getPatientVoiceGuide = ({ patientSpokenText, language = 'en' } = {}
   });
 };
 
+export const getWellnessSuggestions = ({
+  fileId,
+  reportData,
+  bpReading,
+  previousBpReading,
+  symptoms,
+  lifestyle,
+  mlRisk,
+  comparisonDelta,
+  language = 'en',
+} = {}) => {
+  return api.post('/wellness-suggestions', {
+    file_id: fileId,
+    report_data: reportData,
+    bp_reading: bpReading,
+    previous_bp_reading: previousBpReading,
+    symptoms,
+    lifestyle,
+    ml_risk: mlRisk,
+    comparison_delta: comparisonDelta,
+    language,
+  });
+};
+
+export const submitWellnessFeedback = ({
+  suggestionId,
+  category,
+  isUseful,
+  reportId,
+  comment,
+} = {}) => {
+  return api.post('/wellness-feedback', {
+    suggestion_id: suggestionId,
+    category,
+    is_useful: isUseful,
+    report_id: reportId,
+    comment,
+  });
+};
+
 export default api;

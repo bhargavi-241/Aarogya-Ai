@@ -28,6 +28,17 @@ export default function FloatingHealthChat() {
     }
   }, [messages, isOpen, loading]);
 
+  useEffect(() => {
+    const handleOpenChat = (e) => {
+      setIsOpen(true);
+      if (e.detail?.question) {
+        setQuestion(e.detail.question);
+      }
+    };
+    window.addEventListener('open-health-chat', handleOpenChat);
+    return () => window.removeEventListener('open-health-chat', handleOpenChat);
+  }, []);
+
   const handleSend = async (qText = null) => {
     const q = (qText || question).trim();
     if (!q || loading) return;

@@ -7,6 +7,7 @@ import { predictDiabetes, predictHeart, predictKidney } from '../services/api';
 import DisclaimerBanner from '../components/DisclaimerBanner';
 import RiskResultCard from '../components/RiskResultCard';
 import ModelMetricsCard from '../components/ModelMetricsCard';
+import PersonalizedWellnessSuggestions from '../components/PersonalizedWellnessSuggestions';
 
 function InputField({ label, name, value, onChange, min, max, step = 1, helper, unit }) {
   return (
@@ -575,6 +576,25 @@ export default function PredictPage() {
           )}
         </div>
       </div>
+
+      {/* Personalized Wellness Suggestions based on ML Risk Indication */}
+      {predictionResult && (
+        <PersonalizedWellnessSuggestions
+          mlRisk={{
+            disease: activeTab,
+            risk_level: predictionResult.risk_level || (predictionResult.prediction === 1 ? 'High' : 'Low'),
+            prediction: predictionResult.prediction,
+            probability: predictionResult.probability,
+          }}
+          bpReading={
+            activeTab === 'heart'
+              ? `${heartForm.trestbps}/80`
+              : activeTab === 'kidney'
+              ? `${kidneyForm.bp}/80`
+              : `${diabetesForm.blood_pressure}/80`
+          }
+        />
+      )}
 
       {/* Model Performance Metrics Card */}
       <ModelMetricsCard />

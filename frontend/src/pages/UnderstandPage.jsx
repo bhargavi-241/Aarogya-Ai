@@ -26,6 +26,7 @@ import ReportComparisonModal from '../components/ReportComparisonModal';
 import MedicalTermModal from '../components/MedicalTermModal';
 import ManualEntryModal from '../components/ManualEntryModal';
 import ReportQuestionWidget from '../components/ReportQuestionWidget';
+import PersonalizedWellnessSuggestions from '../components/PersonalizedWellnessSuggestions';
 
 export default function UnderstandPage() {
   const location = useLocation();
@@ -1460,6 +1461,12 @@ Uric Acid: 7.8 mg/dL (3.5 - 7.2)`,
               </span>
             </div>
           )}
+
+          {/* PERSONALIZED WELLNESS SUGGESTIONS */}
+          <PersonalizedWellnessSuggestions
+            reportData={ocrData}
+            fileId={uploadResult?.file_id}
+          />
 
           {/* INTERACTIVE REPORT-SPECIFIC HEALTH Q&A */}
           <ReportQuestionWidget reportData={ocrData} />
